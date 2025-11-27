@@ -1,0 +1,3227 @@
+[
+    {
+        "id": "12010a6faa5a4aaa",
+        "type": "tab",
+        "label": "E-Learning Backend",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "1904e9d7cfe12adc",
+        "type": "tab",
+        "label": "Forum API",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "30794f159cf617da",
+        "type": "tab",
+        "label": "Exam API",
+        "disabled": false,
+        "info": "API de thi, bai lam cho he thong E-Learning"
+    },
+    {
+        "id": "b4aafc47f2dfdc53",
+        "type": "tab",
+        "label": "Grading API",
+        "disabled": false,
+        "info": "API bai tap va cham diem"
+    },
+    {
+        "id": "eeac5874f5147587",
+        "type": "tab",
+        "label": "Student API",
+        "disabled": false,
+        "info": "API cho hoc vien: bai tap, de thi, tien do"
+    },
+    {
+        "id": "fed3a4a68ff54e5d",
+        "type": "tab",
+        "label": "Auth - Register",
+        "disabled": false,
+        "info": "Luồng đăng ký tài khoản"
+    },
+    {
+        "id": "639adbf3f9d14ad6",
+        "type": "MySQLdatabase",
+        "name": "MariaDB mydb",
+        "host": "mariadb",
+        "port": "3306",
+        "db": "mydb",
+        "tz": "+07:00",
+        "charset": "UTF8_GENERAL_CI"
+    },
+    {
+        "id": "forum_db",
+        "type": "MySQLdatabase",
+        "name": "MariaDB mydb",
+        "host": "host.docker.internal",
+        "port": "3306",
+        "db": "mydb",
+        "tz": "+07:00",
+        "charset": "UTF8_GENERAL_CI"
+    },
+    {
+        "id": "5ae56f681101f29a",
+        "type": "http in",
+        "z": "12010a6faa5a4aaa",
+        "name": "GET /health",
+        "url": "/health",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 80,
+        "wires": [
+            [
+                "704bbb828afc1096"
+            ]
+        ]
+    },
+    {
+        "id": "704bbb828afc1096",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Trả trạng thái",
+        "func": "msg.statusCode = 200;\nmsg.payload = {\n    status: \"ok\",\n    service: \"e-learning-backend\",\n    timestamp: new Date().toISOString()\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 80,
+        "wires": [
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "4f6568b3c75e8547",
+        "type": "http response",
+        "z": "12010a6faa5a4aaa",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 550,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "653337210ede208e",
+        "type": "http in",
+        "z": "12010a6faa5a4aaa",
+        "name": "POST /auth/login",
+        "url": "/auth/login",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 130,
+        "y": 160,
+        "wires": [
+            [
+                "e67d3f3309109b68"
+            ]
+        ]
+    },
+    {
+        "id": "e67d3f3309109b68",
+        "type": "json",
+        "z": "12010a6faa5a4aaa",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 310,
+        "y": 160,
+        "wires": [
+            [
+                "7b118ab8d6416573"
+            ]
+        ]
+    },
+    {
+        "id": "7b118ab8d6416573",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Validate body",
+        "func": "const { username, password_hash } = msg.payload || {};\nif (!username || !password_hash) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", message: \"username và password_hash là bắt buộc\" };\n    return [null, msg];\n}\nmsg.topic = \"SELECT u.id, u.username, u.email, u.full_name, u.password_hash, u.is_active, \" +\n             \"       COALESCE(GROUP_CONCAT(r.name SEPARATOR ','), '') AS roles \" +\n             \"FROM users u \" +\n             \"LEFT JOIN user_roles ur ON ur.user_id = u.id \" +\n             \"LEFT JOIN roles r ON r.id = ur.role_id \" +\n             \"WHERE u.username = ? \" +\n             \"GROUP BY u.id, u.username, u.email, u.full_name, u.password_hash, u.is_active\";\nmsg.payload = [username];\nmsg._request = { username, password_hash };\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 160,
+        "wires": [
+            [
+                "0de0542a4a976c96"
+            ],
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "0de0542a4a976c96",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query user",
+        "x": 710,
+        "y": 160,
+        "wires": [
+            [
+                "02b8d26a7352866b"
+            ]
+        ]
+    },
+    {
+        "id": "02b8d26a7352866b",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Compare hash",
+        "func": "const body = msg._request;\nconst rows = msg.payload || [];\nif (!rows.length) {\n    msg.statusCode = 401;\n    msg.payload = { error: \"INVALID_CREDENTIALS\" };\n    return msg;\n}\nconst user = rows[0];\nif (user.is_active !== 1 || user.password_hash !== body.password_hash) {\n    msg.statusCode = 401;\n    msg.payload = { error: \"INVALID_CREDENTIALS\" };\n    return msg;\n}\nconst roles = (user.roles || '')\n    .split(',')\n    .map(role => role.trim())\n    .filter(Boolean)\n    .filter((role, index, self) => self.indexOf(role) === index);\nmsg.statusCode = 200;\nmsg.payload = {\n    id: user.id,\n    username: user.username,\n    email: user.email,\n    full_name: user.full_name,\n    roles,\n    primary_role: roles.length ? roles[0] : null\n};\ndelete msg._request;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 160,
+        "wires": [
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "962b82a5f158458e",
+        "type": "http in",
+        "z": "12010a6faa5a4aaa",
+        "name": "GET /courses",
+        "url": "/courses",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 120,
+        "y": 240,
+        "wires": [
+            [
+                "6cb469f3b79bc222"
+            ]
+        ]
+    },
+    {
+        "id": "6cb469f3b79bc222",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Prep query",
+        "func": "msg.topic = `SELECT c.id, c.title, c.slug, c.short_description,\n                    c.level, c.price_cents, c.thumbnail_url,\n                    c.is_published, c.published_at,\n                    pl.name AS language_name,\n                    u.full_name AS instructor_name\n             FROM courses c\n             JOIN programming_languages pl ON pl.id = c.programming_language_id\n             JOIN users u ON u.id = c.instructor_id\n             WHERE c.is_published = 1`;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 240,
+        "wires": [
+            [
+                "b7d10c473a4d54b5"
+            ]
+        ]
+    },
+    {
+        "id": "b7d10c473a4d54b5",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query courses",
+        "x": 500,
+        "y": 240,
+        "wires": [
+            [
+                "88f3ef62256137e4"
+            ]
+        ]
+    },
+    {
+        "id": "88f3ef62256137e4",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Format list",
+        "func": "msg.statusCode = 200;\nmsg.payload = (msg.payload || []).map(row => ({\n    id: row.id,\n    title: row.title,\n    slug: row.slug,\n    short_description: row.short_description,\n    level: row.level,\n    price_cents: row.price_cents,\n    thumbnail_url: row.thumbnail_url,\n    language_name: row.language_name,\n    instructor_name: row.instructor_name,\n    published_at: row.published_at\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 240,
+        "wires": [
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "988a50b811c0b6f2",
+        "type": "http in",
+        "z": "12010a6faa5a4aaa",
+        "name": "GET /courses/:slug",
+        "url": "/courses/:slug",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 320,
+        "wires": [
+            [
+                "faa16eb94cad3af9"
+            ]
+        ]
+    },
+    {
+        "id": "faa16eb94cad3af9",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Query course + sections",
+        "func": "const slug = msg.req.params.slug;\nmsg.topic = `SELECT c.*, pl.name AS language_name, u.full_name AS instructor_name\n             FROM courses c\n             JOIN programming_languages pl ON pl.id = c.programming_language_id\n             JOIN users u ON u.id = c.instructor_id\n             WHERE c.slug = ?`;\nmsg.payload = [slug];\nmsg._slug = slug;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 320,
+        "wires": [
+            [
+                "ba1e25bace5968a6"
+            ]
+        ]
+    },
+    {
+        "id": "ba1e25bace5968a6",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Fetch course",
+        "x": 580,
+        "y": 320,
+        "wires": [
+            [
+                "7308ea97f11ee6c5"
+            ]
+        ]
+    },
+    {
+        "id": "7308ea97f11ee6c5",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Check course",
+        "func": "const rows = msg.payload || [];\nif (!rows.length) {\n    msg.statusCode = 404;\n    msg.payload = { error: \"COURSE_NOT_FOUND\" };\n    delete msg._slug;\n    delete msg._course;\n    return msg;\n}\nconst course = rows[0];\nmsg._course = course;\nmsg.topic = `SELECT s.id AS section_id, s.title AS section_title, s.position AS section_position,\n                    l.id AS lesson_id, l.title AS lesson_title, l.slug AS lesson_slug,\n                    l.content_type, l.duration_sec, l.position AS lesson_position,\n                    l.is_previewable\n             FROM course_sections s\n             LEFT JOIN lessons l ON l.section_id = s.id\n             WHERE s.course_id = ?\n             ORDER BY s.position ASC, l.position ASC`;\nmsg.payload = [course.id];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 320,
+        "wires": [
+            [
+                "4904b05589b8b322"
+            ]
+        ]
+    },
+    {
+        "id": "4904b05589b8b322",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Fetch sections",
+        "x": 990,
+        "y": 320,
+        "wires": [
+            [
+                "a6e976470fd8f670"
+            ]
+        ]
+    },
+    {
+        "id": "a6e976470fd8f670",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Assemble detail",
+        "func": "const course = msg._course;\nconst rows = msg.payload || [];\nconst sectionsMap = {};\n(rows || []).forEach(row => {\n    if (!sectionsMap[row.section_id]) {\n        sectionsMap[row.section_id] = {\n            id: row.section_id,\n            title: row.section_title,\n            position: row.section_position,\n            lessons: []\n        };\n    }\n    if (row.lesson_id) {\n        sectionsMap[row.section_id].lessons.push({\n            id: row.lesson_id,\n            title: row.lesson_title,\n            slug: row.lesson_slug,\n            content_type: row.content_type,\n            duration_sec: row.duration_sec,\n            position: row.lesson_position,\n            is_previewable: row.is_previewable === 1\n        });\n    }\n});\nmsg.statusCode = 200;\nmsg.payload = {\n    ...course,\n    sections: Object.values(sectionsMap)\n};\ndelete msg._course;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1200,
+        "y": 320,
+        "wires": [
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "3b6ca616896324a7",
+        "type": "http in",
+        "z": "12010a6faa5a4aaa",
+        "name": "POST /courses/:id/enroll",
+        "url": "/courses/:id/enroll",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 420,
+        "wires": [
+            [
+                "7dff9944bcaecb6e"
+            ]
+        ]
+    },
+    {
+        "id": "7dff9944bcaecb6e",
+        "type": "json",
+        "z": "12010a6faa5a4aaa",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 360,
+        "y": 420,
+        "wires": [
+            [
+                "a7ba8ae760f3ad02"
+            ]
+        ]
+    },
+    {
+        "id": "a7ba8ae760f3ad02",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Validate enroll",
+        "func": "const courseId = Number(msg.req.params.id);\nconst { user_id } = msg.payload || {};\nif (!courseId || !user_id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", message: \"course_id và user_id là bắt buộc\" };\n    return [null, msg];\n}\nmsg._enroll = { courseId, user_id };\nmsg.topic = \"SELECT 1 FROM user_roles ur \" +\n             \"JOIN roles r ON r.id = ur.role_id \" +\n             \"WHERE ur.user_id = ? AND r.name = 'student' LIMIT 1\";\nmsg.payload = [user_id];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 420,
+        "wires": [
+            [
+                "01a1f5de304de539"
+            ],
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "01a1f5de304de539",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Check student role",
+        "x": 820,
+        "y": 420,
+        "wires": [
+            [
+                "d74234027acb9f94"
+            ]
+        ]
+    },
+    {
+        "id": "d74234027acb9f94",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Ensure student role",
+        "func": "const enroll = msg._enroll;\nconst rows = msg.payload || [];\nif (!enroll) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu thông tin đăng ký.\" };\n    return [null, msg];\n}\nif (!rows.length) {\n    msg.statusCode = 403;\n    msg.payload = { error: \"FORBIDDEN\", message: \"Chỉ học viên mới được đăng ký khóa học.\" };\n    delete msg._enroll;\n    return [null, msg];\n}\nmsg.topic = \"INSERT INTO enrollments (course_id, user_id, enrolled_at, progress_percent) \" +\n             \"VALUES (?, ?, NOW(), 0.00) \" +\n             \"ON DUPLICATE KEY UPDATE last_access_at = NOW()\";\nmsg.payload = [enroll.courseId, enroll.user_id];\ndelete msg._enroll;\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 420,
+        "wires": [
+            [
+                "3165f59f64c78a83"
+            ],
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "3165f59f64c78a83",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Upsert enrollment",
+        "x": 1240,
+        "y": 420,
+        "wires": [
+            [
+                "52687ef36eae566a"
+            ]
+        ]
+    },
+    {
+        "id": "52687ef36eae566a",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Return 200",
+        "func": "msg.statusCode = 200;\nmsg.payload = { success: true };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 420,
+        "wires": [
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "fd329b3e6d2527b9",
+        "type": "http in",
+        "z": "12010a6faa5a4aaa",
+        "name": "GET /users/:id/progress",
+        "url": "/users/:id/progress",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 500,
+        "wires": [
+            [
+                "c2cda51ccf742d0a"
+            ]
+        ]
+    },
+    {
+        "id": "c2cda51ccf742d0a",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Prep progress query",
+        "func": "const userId = Number(msg.req.params.id);\nif (!userId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return msg;\n}\nmsg.topic = `SELECT e.id AS enrollment_id, e.course_id, c.title AS course_title,\n                    e.progress_percent, e.last_access_at,\n                    i.full_name AS instructor_name, i.email AS instructor_email,\n                    lp.lesson_id, l.title AS lesson_title, l.slug AS lesson_slug,\n                    lp.status, lp.completed_at\n             FROM enrollments e\n             JOIN courses c ON c.id = e.course_id\n             JOIN users i ON i.id = c.instructor_id\n             LEFT JOIN lesson_progress lp ON lp.enrollment_id = e.id\n             LEFT JOIN lessons l ON l.id = lp.lesson_id\n             WHERE e.user_id = ?`;\nmsg.payload = [userId];  // Đổi từ msg.params sang msg.payload\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 500,
+        "wires": [
+            [
+                "2ec3034066849534"
+            ]
+        ]
+    },
+    {
+        "id": "2ec3034066849534",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query progress",
+        "x": 620,
+        "y": 500,
+        "wires": [
+            [
+                "fc262f8a48c48f6e"
+            ]
+        ]
+    },
+    {
+        "id": "fc262f8a48c48f6e",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Format progress",
+        "func": "const rows = msg.payload || [];\nconst enrollmentMap = {};\nrows.forEach(row => {\n    if (!enrollmentMap[row.enrollment_id]) {\n        enrollmentMap[row.enrollment_id] = {\n            enrollment_id: row.enrollment_id,\n            course_id: row.course_id,\n            course_title: row.course_title,\n            progress_percent: row.progress_percent,\n            last_access_at: row.last_access_at,\n            instructor_name: row.instructor_name,\n            instructor_email: row.instructor_email,\n            lessons: []\n        };\n    }\n    if (row.lesson_id) {\n        enrollmentMap[row.enrollment_id].lessons.push({\n            lesson_id: row.lesson_id,\n            lesson_title: row.lesson_title,\n            lesson_slug: row.lesson_slug,\n            status: row.status,\n            completed_at: row.completed_at\n        });\n    }\n});\nmsg.statusCode = 200;\nmsg.payload = Object.values(enrollmentMap);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 500,
+        "wires": [
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "520e089548191f7f",
+        "type": "http in",
+        "z": "12010a6faa5a4aaa",
+        "name": "GET /courses/:id/students",
+        "url": "/courses/:id/students",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 580,
+        "wires": [
+            [
+                "f35133543d7e7c95"
+            ]
+        ]
+    },
+    {
+        "id": "f35133543d7e7c95",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Prep course students",
+        "func": "const courseId = Number(msg.req.params.id);\nif (!courseId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return msg;\n}\nmsg.topic = `SELECT e.id AS enrollment_id,\n                    e.course_id,\n                    u.id AS student_id,\n                    u.full_name AS student_name,\n                    u.email AS student_email,\n                    e.enrolled_at,\n                    e.progress_percent,\n                    e.last_access_at\n             FROM enrollments e\n             JOIN users u ON u.id = e.user_id\n             WHERE e.course_id = ?`;\nmsg.payload = [courseId];\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 580,
+        "wires": [
+            [
+                "b20dbb92755d7e80"
+            ]
+        ]
+    },
+    {
+        "id": "b20dbb92755d7e80",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query course students",
+        "x": 700,
+        "y": 580,
+        "wires": [
+            [
+                "a35a643f06c03a7d"
+            ]
+        ]
+    },
+    {
+        "id": "a35a643f06c03a7d",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Format course students",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(row => ({\n    enrollment_id: row.enrollment_id,\n    course_id: row.course_id,\n    student_id: row.student_id,\n    student_name: row.student_name,\n    student_email: row.student_email,\n    enrolled_at: row.enrolled_at,\n    progress_percent: row.progress_percent,\n    last_access_at: row.last_access_at\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 580,
+        "wires": [
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "c56fc2286fc08c9d",
+        "type": "http in",
+        "z": "12010a6faa5a4aaa",
+        "name": "GET /instructors/:id/students",
+        "url": "/instructors/:id/students",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 640,
+        "wires": [
+            [
+                "1420ed6aadaa3d70"
+            ]
+        ]
+    },
+    {
+        "id": "1420ed6aadaa3d70",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Prep instructor students",
+        "func": "const instructorId = Number(msg.req.params.id);\nif (!instructorId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return msg;\n}\nmsg.topic = `SELECT c.id AS course_id,\n                    c.title AS course_title,\n                    c.slug AS course_slug,\n                    e.id AS enrollment_id,\n                    u.id AS student_id,\n                    u.full_name AS student_name,\n                    u.email AS student_email,\n                    e.enrolled_at,\n                    e.progress_percent,\n                    e.last_access_at\n             FROM courses c\n             JOIN enrollments e ON e.course_id = c.id\n             JOIN users u ON u.id = e.user_id\n             WHERE c.instructor_id = ?\n             ORDER BY c.title ASC, u.full_name ASC`;\nmsg.payload = [instructorId];\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 640,
+        "wires": [
+            [
+                "c3d141d3e5f6b34d"
+            ]
+        ]
+    },
+    {
+        "id": "c3d141d3e5f6b34d",
+        "type": "mysql",
+        "z": "12010a6faa5a4aaa",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query instructor students",
+        "x": 760,
+        "y": 640,
+        "wires": [
+            [
+                "192c3ed449bac3d1"
+            ]
+        ]
+    },
+    {
+        "id": "192c3ed449bac3d1",
+        "type": "function",
+        "z": "12010a6faa5a4aaa",
+        "name": "Format instructor students",
+        "func": "const rows = msg.payload || [];\nconst courseMap = {};\nrows.forEach(row => {\n    if (!courseMap[row.course_id]) {\n        courseMap[row.course_id] = {\n            course_id: row.course_id,\n            course_title: row.course_title,\n            course_slug: row.course_slug,\n            students: []\n        };\n    }\n    courseMap[row.course_id].students.push({\n        enrollment_id: row.enrollment_id,\n        student_id: row.student_id,\n        student_name: row.student_name,\n        student_email: row.student_email,\n        enrolled_at: row.enrolled_at,\n        progress_percent: row.progress_percent,\n        last_access_at: row.last_access_at\n    });\n});\nmsg.statusCode = 200;\nmsg.payload = Object.values(courseMap);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1030,
+        "y": 640,
+        "wires": [
+            [
+                "4f6568b3c75e8547"
+            ]
+        ]
+    },
+    {
+        "id": "71830b7ae845ade5",
+        "type": "http in",
+        "z": "1904e9d7cfe12adc",
+        "name": "GET /forum/posts",
+        "url": "/forum/posts",
+        "method": "get",
+        "upload": false,
+        "x": 140,
+        "y": 80,
+        "wires": [
+            [
+                "3232c16baa4649de"
+            ]
+        ]
+    },
+    {
+        "id": "3232c16baa4649de",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Query posts SQL",
+        "func": "msg.topic = `SELECT fp.id, fp.user_id, fp.title, fp.content, fp.view_count,\n                           fp.created_at, fp.updated_at,\n                           u.username, u.full_name AS author_name,\n                           COALESCE((SELECT COUNT(*) FROM forum_comments fc WHERE fc.post_id = fp.id), 0) AS comments_count\n                    FROM forum_posts fp\n                    JOIN users u ON u.id = fp.user_id\n                    ORDER BY fp.created_at DESC`;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 360,
+        "y": 80,
+        "wires": [
+            [
+                "37a4401decdf4620"
+            ]
+        ]
+    },
+    {
+        "id": "37a4401decdf4620",
+        "type": "mysql",
+        "z": "1904e9d7cfe12adc",
+        "mydb": "forum_db",
+        "name": "Fetch posts",
+        "x": 570,
+        "y": 80,
+        "wires": [
+            [
+                "246289b21537f1d2"
+            ]
+        ]
+    },
+    {
+        "id": "246289b21537f1d2",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Format posts",
+        "func": "const rows = msg.payload || [];\nmsg.payload = rows.map(row => ({\n    id: row.id,\n    user_id: row.user_id,\n    title: row.title,\n    content: row.content,\n    view_count: row.view_count || 0,\n    created_at: row.created_at,\n    updated_at: row.updated_at,\n    username: row.username,\n    author_name: row.author_name,\n    comments_count: Number(row.comments_count) || 0\n}));\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 780,
+        "y": 80,
+        "wires": [
+            [
+                "9035c16ec9de3b61"
+            ]
+        ]
+    },
+    {
+        "id": "9035c16ec9de3b61",
+        "type": "http response",
+        "z": "1904e9d7cfe12adc",
+        "name": "Respond posts",
+        "statusCode": "",
+        "headers": {},
+        "x": 1010,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "44ae97f3b45d0afe",
+        "type": "http in",
+        "z": "1904e9d7cfe12adc",
+        "name": "GET /forum/posts/:id",
+        "url": "/forum/posts/:id",
+        "method": "get",
+        "upload": false,
+        "x": 150,
+        "y": 200,
+        "wires": [
+            [
+                "6656606d75bb4ecf"
+            ]
+        ]
+    },
+    {
+        "id": "6656606d75bb4ecf",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Validate id",
+        "func": "const postId = Number(msg.req.params.id);\nif (!postId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return [null, msg];\n}\nmsg._postId = postId;\nmsg.topic = `SELECT fp.id, fp.user_id, fp.title, fp.content, fp.view_count,\n                    fp.created_at, fp.updated_at,\n                    u.username, u.full_name AS author_name\n             FROM forum_posts fp\n             JOIN users u ON u.id = fp.user_id\n             WHERE fp.id = ?`;\nmsg.payload = [postId];\nreturn [msg, null];",
+        "outputs": 2,
+        "x": 370,
+        "y": 200,
+        "wires": [
+            [
+                "b8a3a259beceeea2"
+            ],
+            [
+                "102c92fcdd4768b9"
+            ]
+        ]
+    },
+    {
+        "id": "b8a3a259beceeea2",
+        "type": "mysql",
+        "z": "1904e9d7cfe12adc",
+        "mydb": "forum_db",
+        "name": "Fetch post",
+        "x": 580,
+        "y": 180,
+        "wires": [
+            [
+                "31355a5bd422c711"
+            ]
+        ]
+    },
+    {
+        "id": "31355a5bd422c711",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Check existed",
+        "func": "const rows = msg.payload || [];\nif (!rows.length) {\n    msg.statusCode = 404;\n    msg.payload = { error: \"POST_NOT_FOUND\" };\n    return [null, msg];\n}\nmsg._post = rows[0];\nmsg.topic = `SELECT fc.id, fc.post_id, fc.user_id, fc.content, fc.parent_id,\n                    fc.created_at, fc.updated_at,\n                    u.username, u.full_name AS author_name\n             FROM forum_comments fc\n             JOIN users u ON u.id = fc.user_id\n             WHERE fc.post_id = ?\n             ORDER BY fc.created_at ASC`;\nmsg.payload = [msg._postId];\nreturn [msg, null];",
+        "outputs": 2,
+        "x": 810,
+        "y": 180,
+        "wires": [
+            [
+                "7618dfddafc56b1a"
+            ],
+            [
+                "102c92fcdd4768b9"
+            ]
+        ]
+    },
+    {
+        "id": "7618dfddafc56b1a",
+        "type": "mysql",
+        "z": "1904e9d7cfe12adc",
+        "mydb": "forum_db",
+        "name": "Fetch comments",
+        "x": 1040,
+        "y": 180,
+        "wires": [
+            [
+                "d25d7a563af40b3b"
+            ]
+        ]
+    },
+    {
+        "id": "d25d7a563af40b3b",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Build payload",
+        "func": "const post = msg._post;\nconst rows = msg.payload || [];\nconst byId = {};\nconst roots = [];\nrows.forEach(row => {\n    const comment = {\n        id: row.id,\n        post_id: row.post_id,\n        user_id: row.user_id,\n        content: row.content,\n        parent_id: row.parent_id,\n        created_at: row.created_at,\n        updated_at: row.updated_at,\n        username: row.username,\n        author_name: row.author_name,\n        replies: []\n    };\n    byId[row.id] = comment;\n});\nObject.values(byId).forEach(comment => {\n    if (comment.parent_id && byId[comment.parent_id]) {\n        byId[comment.parent_id].replies.push(comment);\n    } else {\n        roots.push(comment);\n    }\n});\nmsg.payload = {\n    id: post.id,\n    user_id: post.user_id,\n    title: post.title,\n    content: post.content,\n    view_count: post.view_count || 0,\n    created_at: post.created_at,\n    updated_at: post.updated_at,\n    username: post.username,\n    author_name: post.author_name,\n    comments: roots\n};\nmsg.statusCode = 200;\ndelete msg._post;\ndelete msg._postId;\nreturn msg;",
+        "outputs": 1,
+        "x": 1260,
+        "y": 180,
+        "wires": [
+            [
+                "102c92fcdd4768b9"
+            ]
+        ]
+    },
+    {
+        "id": "102c92fcdd4768b9",
+        "type": "http response",
+        "z": "1904e9d7cfe12adc",
+        "name": "Respond detail",
+        "statusCode": "",
+        "headers": {},
+        "x": 1480,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "d961ba1a259e7b39",
+        "type": "http in",
+        "z": "1904e9d7cfe12adc",
+        "name": "POST /forum/posts",
+        "url": "/forum/posts",
+        "method": "post",
+        "upload": false,
+        "x": 150,
+        "y": 320,
+        "wires": [
+            [
+                "dab0830f5b1e921c"
+            ]
+        ]
+    },
+    {
+        "id": "dab0830f5b1e921c",
+        "type": "json",
+        "z": "1904e9d7cfe12adc",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 360,
+        "y": 320,
+        "wires": [
+            [
+                "eb1d4d3abbb6a8f0"
+            ]
+        ]
+    },
+    {
+        "id": "eb1d4d3abbb6a8f0",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Validate post data",
+        "func": "const { user_id, title, content } = msg.payload || {};\nconst trimmedTitle = (title || \"\").trim();\nconst trimmedContent = (content || \"\").trim();\nif (!user_id || !trimmedTitle || !trimmedContent) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", message: \"user_id, title, content required\" };\n    return [null, msg];\n}\nmsg.topic = `INSERT INTO forum_posts (user_id, title, content, view_count, created_at, updated_at)\n             VALUES (?, ?, ?, 0, NOW(), NOW())`;\nmsg.payload = [user_id, trimmedTitle, trimmedContent];\nreturn [msg, null];",
+        "outputs": 2,
+        "x": 580,
+        "y": 320,
+        "wires": [
+            [
+                "5acf3ab2251d216b"
+            ],
+            [
+                "5804fa98060814c3"
+            ]
+        ]
+    },
+    {
+        "id": "5acf3ab2251d216b",
+        "type": "mysql",
+        "z": "1904e9d7cfe12adc",
+        "mydb": "forum_db",
+        "name": "Insert post",
+        "x": 800,
+        "y": 300,
+        "wires": [
+            [
+                "0283bf83ec6211ad"
+            ]
+        ]
+    },
+    {
+        "id": "0283bf83ec6211ad",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Return 201",
+        "func": "const ok = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nconst postId = msg.insertId || ok?.insertId;\nif (!postId) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Cannot create post\" };\n    return msg;\n}\nmsg.statusCode = 201;\nmsg.payload = { id: postId, success: true };\nreturn msg;",
+        "outputs": 1,
+        "x": 1010,
+        "y": 300,
+        "wires": [
+            [
+                "5804fa98060814c3"
+            ]
+        ]
+    },
+    {
+        "id": "5804fa98060814c3",
+        "type": "http response",
+        "z": "1904e9d7cfe12adc",
+        "name": "Respond create post",
+        "statusCode": "",
+        "headers": {},
+        "x": 1240,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "f7f7594d3e4e6fa6",
+        "type": "http in",
+        "z": "1904e9d7cfe12adc",
+        "name": "POST /forum/comments",
+        "url": "/forum/comments",
+        "method": "post",
+        "upload": false,
+        "x": 160,
+        "y": 440,
+        "wires": [
+            [
+                "b279cd10339d93da"
+            ]
+        ]
+    },
+    {
+        "id": "b279cd10339d93da",
+        "type": "json",
+        "z": "1904e9d7cfe12adc",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 360,
+        "y": 440,
+        "wires": [
+            [
+                "b0905c1e07dfbbce"
+            ]
+        ]
+    },
+    {
+        "id": "b0905c1e07dfbbce",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Validate comment",
+        "func": "const { post_id, user_id, content, parent_id } = msg.payload || {};\nconst trimmed = (content || \"\").trim();\nif (!post_id || !user_id || !trimmed) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", message: \"post_id, user_id, content required\" };\n    return [null, msg];\n}\nmsg.topic = `INSERT INTO forum_comments (post_id, user_id, content, parent_id, created_at, updated_at)\n             VALUES (?, ?, ?, ?, NOW(), NOW())`;\nmsg.payload = [post_id, user_id, trimmed, parent_id || null];\nreturn [msg, null];",
+        "outputs": 2,
+        "x": 580,
+        "y": 440,
+        "wires": [
+            [
+                "da3e4bcac8317a7d"
+            ],
+            [
+                "3c7ed93715091fe0"
+            ]
+        ]
+    },
+    {
+        "id": "da3e4bcac8317a7d",
+        "type": "mysql",
+        "z": "1904e9d7cfe12adc",
+        "mydb": "forum_db",
+        "name": "Insert comment",
+        "x": 800,
+        "y": 420,
+        "wires": [
+            [
+                "b3278c7f2fbfc20f"
+            ]
+        ]
+    },
+    {
+        "id": "b3278c7f2fbfc20f",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Return 201 comment",
+        "func": "const ok = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nconst commentId = msg.insertId || ok?.insertId;\nif (!commentId) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Cannot create comment\" };\n    return msg;\n}\nmsg.statusCode = 201;\nmsg.payload = { id: commentId, success: true };\nreturn msg;",
+        "outputs": 1,
+        "x": 1010,
+        "y": 420,
+        "wires": [
+            [
+                "3c7ed93715091fe0"
+            ]
+        ]
+    },
+    {
+        "id": "3c7ed93715091fe0",
+        "type": "http response",
+        "z": "1904e9d7cfe12adc",
+        "name": "Respond create comment",
+        "statusCode": "",
+        "headers": {},
+        "x": 1240,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "60aad49b3108cfe4",
+        "type": "http in",
+        "z": "1904e9d7cfe12adc",
+        "name": "POST /forum/posts/:id/view",
+        "url": "/forum/posts/:id/view",
+        "method": "post",
+        "upload": false,
+        "x": 150,
+        "y": 560,
+        "wires": [
+            [
+                "aa5d92c822456801"
+            ]
+        ]
+    },
+    {
+        "id": "aa5d92c822456801",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Validate id for view",
+        "func": "const postId = Number(msg.req.params.id);\nif (!postId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return [null, msg];\n}\nmsg.topic = `UPDATE forum_posts SET view_count = view_count + 1 WHERE id = ?`;\nmsg.payload = [postId];\nreturn [msg, null];",
+        "outputs": 2,
+        "x": 370,
+        "y": 560,
+        "wires": [
+            [
+                "e2ef3baf94779d7b"
+            ],
+            [
+                "dbd35e3d2e63112d"
+            ]
+        ]
+    },
+    {
+        "id": "e2ef3baf94779d7b",
+        "type": "mysql",
+        "z": "1904e9d7cfe12adc",
+        "mydb": "forum_db",
+        "name": "Update view",
+        "x": 590,
+        "y": 540,
+        "wires": [
+            [
+                "20277ab40429d5ce"
+            ]
+        ]
+    },
+    {
+        "id": "20277ab40429d5ce",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Return view ok",
+        "func": "msg.statusCode = 200;\nmsg.payload = { success: true };\nreturn msg;",
+        "outputs": 1,
+        "x": 800,
+        "y": 540,
+        "wires": [
+            [
+                "dbd35e3d2e63112d"
+            ]
+        ]
+    },
+    {
+        "id": "dbd35e3d2e63112d",
+        "type": "http response",
+        "z": "1904e9d7cfe12adc",
+        "name": "Respond view",
+        "statusCode": "",
+        "headers": {},
+        "x": 1020,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "a7687679e63bb651",
+        "type": "catch",
+        "z": "1904e9d7cfe12adc",
+        "name": "Catch Forum Errors",
+        "scope": [
+            "3232c16baa4649de",
+            "37a4401decdf4620",
+            "6656606d75bb4ecf",
+            "b8a3a259beceeea2",
+            "31355a5bd422c711",
+            "7618dfddafc56b1a",
+            "d25d7a563af40b3b",
+            "eb1d4d3abbb6a8f0",
+            "5acf3ab2251d216b",
+            "b0905c1e07dfbbce",
+            "da3e4bcac8317a7d",
+            "aa5d92c822456801",
+            "e2ef3baf94779d7b"
+        ],
+        "x": 220,
+        "y": 660,
+        "wires": [
+            [
+                "8ed1a58cde44bdb0"
+            ]
+        ]
+    },
+    {
+        "id": "8ed1a58cde44bdb0",
+        "type": "function",
+        "z": "1904e9d7cfe12adc",
+        "name": "Format error",
+        "func": "const err = msg.error || {};\nmsg.statusCode = err.statusCode || 500;\nmsg.payload = {\n    error: 'FORUM_API_ERROR',\n    detail: err.message || 'Unexpected error'\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 460,
+        "y": 660,
+        "wires": [
+            [
+                "30143b1567588e46"
+            ]
+        ]
+    },
+    {
+        "id": "30143b1567588e46",
+        "type": "http response",
+        "z": "1904e9d7cfe12adc",
+        "name": "Error response",
+        "statusCode": "",
+        "headers": {},
+        "x": 680,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "b1e630ad598ea087",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "GET /instructors/:id/courses/:courseId/exams",
+        "url": "/instructors/:id/courses/:courseId/exams",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 80,
+        "wires": [
+            [
+                "69704cb264478e6a"
+            ]
+        ]
+    },
+    {
+        "id": "69704cb264478e6a",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Prep instr exams",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst courseId = Number(msg.req.params.courseId);\n\nif (!instructorId || !courseId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", message: \"instructorId hoặc courseId không hợp lệ\" };\n    return [null, msg];\n}\n\nmsg.topic = \"SELECT e.id, e.course_id, e.title, e.description, e.max_score, e.duration_minutes, e.start_at, e.end_at, e.attempt_limit, e.is_published, e.created_at, e.updated_at \\n            FROM exams e \\n            JOIN courses c ON c.id = e.course_id \\n            WHERE e.course_id = ? AND c.instructor_id = ? \\n            ORDER BY e.start_at IS NULL, e.start_at ASC, e.id ASC\";\nmsg.payload = [courseId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 80,
+        "wires": [
+            [
+                "72322c8bfb3d93ab"
+            ],
+            [
+                "061c30ee0ba1b733"
+            ]
+        ]
+    },
+    {
+        "id": "72322c8bfb3d93ab",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query instr exams",
+        "x": 720,
+        "y": 80,
+        "wires": [
+            [
+                "356e911a369d2b18"
+            ]
+        ]
+    },
+    {
+        "id": "356e911a369d2b18",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Format exams",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    id: r.id,\n    course_id: r.course_id,\n    title: r.title,\n    description: r.description,\n    max_score: r.max_score != null ? Number(r.max_score) : null,\n    duration_minutes: r.duration_minutes,\n    start_at: r.start_at,\n    end_at: r.end_at,\n    attempt_limit: r.attempt_limit,\n    is_published: r.is_published === 1,\n    created_at: r.created_at,\n    updated_at: r.updated_at\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 960,
+        "y": 80,
+        "wires": [
+            [
+                "061c30ee0ba1b733"
+            ]
+        ]
+    },
+    {
+        "id": "061c30ee0ba1b733",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond instr exams",
+        "statusCode": "",
+        "headers": {},
+        "x": 1230,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "de8b1aa8d2a10821",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "POST /instructors/:id/courses/:courseId/exams",
+        "url": "/instructors/:id/courses/:courseId/exams",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 160,
+        "wires": [
+            [
+                "c4eb7088d3bd7a75"
+            ]
+        ]
+    },
+    {
+        "id": "c4eb7088d3bd7a75",
+        "type": "json",
+        "z": "30794f159cf617da",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 410,
+        "y": 150,
+        "wires": [
+            [
+                "232949afa7ea3aae"
+            ]
+        ]
+    },
+    {
+        "id": "232949afa7ea3aae",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Validate exam body",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst courseId = Number(msg.req.params.courseId);\nconst body = msg.payload || {};\n\nconst title = (body.title || \"\").trim();\nconst description = body.description || null;\nconst maxScore = body.max_score != null ? Number(body.max_score) : 10;\nconst duration = body.duration_minutes != null ? Number(body.duration_minutes) : null;\nconst startAt = body.start_at || null;\nconst endAt = body.end_at || null;\nconst attemptLimit = body.attempt_limit != null ? Number(body.attempt_limit) : 1;\nconst isPublished = body.is_published ? 1 : 0;\n\nconst errors = [];\nif (!instructorId || !courseId) errors.push(\"INVALID_PATH_PARAMS\");\nif (!title) errors.push(\"INVALID_TITLE\");\nif (Number.isNaN(maxScore) || maxScore <= 0) errors.push(\"INVALID_MAX_SCORE\");\nif (attemptLimit && (Number.isNaN(attemptLimit) || attemptLimit <= 0)) errors.push(\"INVALID_ATTEMPT_LIMIT\");\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", details: errors };\n    return [null, msg];\n}\n\nmsg._newExam = { instructorId, courseId, title, description, maxScore, duration, startAt, endAt, attemptLimit, isPublished };\nmsg.topic = \"SELECT id FROM courses WHERE id = ? AND instructor_id = ? LIMIT 1\";\nmsg.payload = [courseId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 690,
+        "y": 150,
+        "wires": [
+            [
+                "168dd1198cb38a18"
+            ],
+            [
+                "f337307727fb9c1f"
+            ]
+        ]
+    },
+    {
+        "id": "168dd1198cb38a18",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Check course+instructor",
+        "x": 990,
+        "y": 150,
+        "wires": [
+            [
+                "7333f71f561aa980"
+            ]
+        ]
+    },
+    {
+        "id": "7333f71f561aa980",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Prepare INSERT exam",
+        "func": "const data = msg._newExam;\nconst rows = msg.payload || [];\n\nif (!data) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu exam.\" };\n    return [null, msg];\n}\n\nif (!rows.length) {\n    msg.statusCode = 403;\n    msg.payload = { error: \"FORBIDDEN\", message: \"Bạn không phải giảng viên của khóa học này.\" };\n    delete msg._newExam;\n    return [null, msg];\n}\n\nmsg.topic = \"INSERT INTO exams (course_id, title, description, max_score, duration_minutes, start_at, end_at, attempt_limit, is_published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())\";\nmsg.payload = [\n    data.courseId,\n    data.title,\n    data.description,\n    data.maxScore,\n    data.duration,\n    data.startAt,\n    data.endAt,\n    data.attemptLimit,\n    data.isPublished\n];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 1270,
+        "y": 150,
+        "wires": [
+            [
+                "edaad84b2fd62f2d"
+            ],
+            [
+                "f337307727fb9c1f"
+            ]
+        ]
+    },
+    {
+        "id": "edaad84b2fd62f2d",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Insert exam",
+        "x": 1530,
+        "y": 150,
+        "wires": [
+            [
+                "ccfe3e92d3ec5528"
+            ]
+        ]
+    },
+    {
+        "id": "ccfe3e92d3ec5528",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Return 201 exam",
+        "func": "if (msg.error) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: msg.error.message || \"Không thể tạo đề thi.\" };\n    delete msg._newExam;\n    return msg;\n}\n\nconst ok = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nconst id = msg.insertId || ok?.insertId;\nconst data = msg._newExam || {};\n\nif (!id) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Không xác định được ID đề thi.\" };\n    delete msg._newExam;\n    return msg;\n}\n\nmsg.statusCode = 201;\nmsg.payload = {\n    id,\n    course_id: data.courseId,\n    title: data.title,\n    description: data.description,\n    max_score: data.maxScore,\n    duration_minutes: data.duration,\n    start_at: data.startAt,\n    end_at: data.endAt,\n    attempt_limit: data.attemptLimit,\n    is_published: !!data.isPublished\n};\n\ndelete msg._newExam;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1800,
+        "y": 150,
+        "wires": [
+            [
+                "f337307727fb9c1f"
+            ]
+        ]
+    },
+    {
+        "id": "f337307727fb9c1f",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond create exam",
+        "statusCode": "",
+        "headers": {},
+        "x": 2060,
+        "y": 150,
+        "wires": []
+    },
+    {
+        "id": "36a3dced44e6bf36",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "POST /instructors/:id/exams/:examId/questions",
+        "url": "/instructors/:id/exams/:examId/questions",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 220,
+        "wires": [
+            [
+                "824186edb5ec4c07"
+            ]
+        ]
+    },
+    {
+        "id": "824186edb5ec4c07",
+        "type": "json",
+        "z": "30794f159cf617da",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 430,
+        "y": 230,
+        "wires": [
+            [
+                "3d67d696a34a07b0"
+            ]
+        ]
+    },
+    {
+        "id": "3d67d696a34a07b0",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Validate question",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst examId = Number(msg.req.params.examId);\nconst body = msg.payload || {};\n\nconst text = (body.question_text || \"\").trim();\nconst type = body.question_type || 'single_choice';\nconst points = body.points != null ? Number(body.points) : 1;\nconst position = body.position != null ? Number(body.position) : 1;\n\nconst errors = [];\nif (!instructorId || !examId) errors.push(\"INVALID_PATH_PARAMS\");\nif (!text) errors.push(\"INVALID_QUESTION_TEXT\");\nif (Number.isNaN(points) || points <= 0) errors.push(\"INVALID_POINTS\");\nif (Number.isNaN(position) || position <= 0) errors.push(\"INVALID_POSITION\");\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", details: errors };\n    return [null, msg];\n}\n\nmsg._newQuestion = { instructorId, examId, text, type, points, position };\nmsg.topic = \"SELECT e.id FROM exams e JOIN courses c ON c.id = e.course_id WHERE e.id = ? AND c.instructor_id = ? LIMIT 1\";\nmsg.payload = [examId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 720,
+        "y": 230,
+        "wires": [
+            [
+                "cf8e4d45a05ef013"
+            ],
+            [
+                "d63c4c9922f53f21"
+            ]
+        ]
+    },
+    {
+        "id": "cf8e4d45a05ef013",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Check exam+instr",
+        "x": 1030,
+        "y": 230,
+        "wires": [
+            [
+                "1b4a157e2dcc37eb"
+            ]
+        ]
+    },
+    {
+        "id": "1b4a157e2dcc37eb",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Insert question",
+        "x": 1320,
+        "y": 230,
+        "wires": [
+            [
+                "681360dc30977829"
+            ]
+        ]
+    },
+    {
+        "id": "681360dc30977829",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Return 201 question",
+        "func": "const data = msg._newQuestion;\nconst rows = msg.payload || [];\n\nif (!data) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu câu hỏi.\" };\n    return msg;\n}\n\n// Nếu trước đó check exam+instr fail thì mysql có thể không chạy; ta không check lại ở đây để đơn giản.\nconst ok = Array.isArray(rows) ? rows[0] : rows;\nconst id = msg.insertId || ok?.insertId;\n\nif (!id) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Không thể tạo câu hỏi.\" };\n    delete msg._newQuestion;\n    return msg;\n}\n\nmsg.statusCode = 201;\nmsg.payload = {\n    id,\n    exam_id: data.examId,\n    question_text: data.text,\n    question_type: data.type,\n    points: data.points,\n    position: data.position\n};\n\ndelete msg._newQuestion;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1600,
+        "y": 230,
+        "wires": [
+            [
+                "d63c4c9922f53f21"
+            ]
+        ]
+    },
+    {
+        "id": "d63c4c9922f53f21",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond create question",
+        "statusCode": "",
+        "headers": {},
+        "x": 1880,
+        "y": 230,
+        "wires": []
+    },
+    {
+        "id": "e2f397dc685595bd",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "POST /instructors/:id/questions/:questionId/options",
+        "url": "/instructors/:id/questions/:questionId/options",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 300,
+        "wires": [
+            [
+                "b11ccbc8bf9b378f"
+            ]
+        ]
+    },
+    {
+        "id": "b11ccbc8bf9b378f",
+        "type": "json",
+        "z": "30794f159cf617da",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 430,
+        "y": 310,
+        "wires": [
+            [
+                "2b7210f5577bda5e"
+            ]
+        ]
+    },
+    {
+        "id": "2b7210f5577bda5e",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Validate option",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst questionId = Number(msg.req.params.questionId);\nconst body = msg.payload || {};\n\nconst text = (body.option_text || \"\").trim();\nconst isCorrect = body.is_correct ? 1 : 0;\nconst position = body.position != null ? Number(body.position) : 1;\n\nconst errors = [];\nif (!instructorId || !questionId) errors.push(\"INVALID_PATH_PARAMS\");\nif (!text) errors.push(\"INVALID_OPTION_TEXT\");\nif (Number.isNaN(position) || position <= 0) errors.push(\"INVALID_POSITION\");\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", details: errors };\n    return [null, msg];\n}\n\nmsg._newOption = { instructorId, questionId, text, isCorrect, position };\nmsg.topic = \"SELECT q.id FROM exam_questions q JOIN exams e ON e.id = q.exam_id JOIN courses c ON c.id = e.course_id WHERE q.id = ? AND c.instructor_id = ? LIMIT 1\";\nmsg.payload = [questionId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 720,
+        "y": 310,
+        "wires": [
+            [
+                "72e3dc2ce2d235a2"
+            ],
+            [
+                "53c413d59de2602e"
+            ]
+        ]
+    },
+    {
+        "id": "72e3dc2ce2d235a2",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Check question+instr",
+        "x": 1030,
+        "y": 310,
+        "wires": [
+            [
+                "de0d79a74505918f"
+            ]
+        ]
+    },
+    {
+        "id": "de0d79a74505918f",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Insert option",
+        "x": 1320,
+        "y": 310,
+        "wires": [
+            [
+                "23cd8ba917d38e89"
+            ]
+        ]
+    },
+    {
+        "id": "23cd8ba917d38e89",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Return 201 option",
+        "func": "const data = msg._newOption;\nconst rows = msg.payload || [];\n\nif (!data) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu option.\" };\n    return msg;\n}\n\nconst ok = Array.isArray(rows) ? rows[0] : rows;\nconst id = msg.insertId || ok?.insertId;\n\nif (!id) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Không thể tạo option.\" };\n    delete msg._newOption;\n    return msg;\n}\n\nmsg.statusCode = 201;\nmsg.payload = {\n    id,\n    question_id: data.questionId,\n    option_text: data.text,\n    is_correct: !!data.isCorrect,\n    position: data.position\n};\n\ndelete msg._newOption;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1600,
+        "y": 310,
+        "wires": [
+            [
+                "53c413d59de2602e"
+            ]
+        ]
+    },
+    {
+        "id": "53c413d59de2602e",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond create option",
+        "statusCode": "",
+        "headers": {},
+        "x": 1880,
+        "y": 310,
+        "wires": []
+    },
+    {
+        "id": "0b8c6889a244b506",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "GET /courses/:courseId/exams",
+        "url": "/courses/:courseId/exams",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 390,
+        "wires": [
+            [
+                "167b65fbc16321f7"
+            ]
+        ]
+    },
+    {
+        "id": "167b65fbc16321f7",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Prep course exams",
+        "func": "const courseId = Number(msg.req.params.courseId);\nif (!courseId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return msg;\n}\n\nmsg.topic = \"SELECT e.id, e.course_id, e.title, e.description, e.max_score, e.duration_minutes, e.start_at, e.end_at, e.attempt_limit, e.is_published FROM exams e WHERE e.course_id = ? AND e.is_published = 1 ORDER BY e.start_at IS NULL, e.start_at ASC, e.id ASC\";\nmsg.payload = [courseId];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 430,
+        "y": 390,
+        "wires": [
+            [
+                "83d4c9be2c406397"
+            ]
+        ]
+    },
+    {
+        "id": "83d4c9be2c406397",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query course exams",
+        "x": 720,
+        "y": 390,
+        "wires": [
+            [
+                "e0b3c37b72a3e4fd"
+            ]
+        ]
+    },
+    {
+        "id": "e0b3c37b72a3e4fd",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Format exams course",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    id: r.id,\n    course_id: r.course_id,\n    title: r.title,\n    description: r.description,\n    max_score: r.max_score != null ? Number(r.max_score) : null,\n    duration_minutes: r.duration_minutes,\n    start_at: r.start_at,\n    end_at: r.end_at,\n    attempt_limit: r.attempt_limit,\n    is_published: r.is_published === 1\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 990,
+        "y": 390,
+        "wires": [
+            [
+                "03c465b3ae43a02f"
+            ]
+        ]
+    },
+    {
+        "id": "03c465b3ae43a02f",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond course exams",
+        "statusCode": "",
+        "headers": {},
+        "x": 1260,
+        "y": 390,
+        "wires": []
+    },
+    {
+        "id": "745aa5f1627f25d4",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "GET /exams/:examId/questions",
+        "url": "/exams/:examId/questions",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 470,
+        "wires": [
+            [
+                "d4aa290787a96995"
+            ]
+        ]
+    },
+    {
+        "id": "d4aa290787a96995",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Prep get questions",
+        "func": "const examId = Number(msg.req.params.examId);\nif (!examId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return msg;\n}\n\nmsg.topic = \"SELECT q.id AS question_id, q.exam_id, q.question_text, q.question_type, q.points, q.position, o.id AS option_id, o.option_text, o.is_correct, o.position AS option_position \\n             FROM exam_questions q \\n             LEFT JOIN exam_options o ON o.question_id = q.id \\n             WHERE q.exam_id = ? \\n             ORDER BY q.position ASC, o.position ASC\";\nmsg.payload = [examId];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 430,
+        "y": 470,
+        "wires": [
+            [
+                "f9379b576e579e9c"
+            ]
+        ]
+    },
+    {
+        "id": "f9379b576e579e9c",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query questions+options",
+        "x": 740,
+        "y": 470,
+        "wires": [
+            [
+                "1308cbfe28c3879b"
+            ]
+        ]
+    },
+    {
+        "id": "1308cbfe28c3879b",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Format questions",
+        "func": "const rows = msg.payload || [];\nconst map = {};\nrows.forEach(r => {\n    if (!map[r.question_id]) {\n        map[r.question_id] = {\n            id: r.question_id,\n            exam_id: r.exam_id,\n            question_text: r.question_text,\n            question_type: r.question_type,\n            points: r.points,\n            position: r.position,\n            options: []\n        };\n    }\n    if (r.option_id) {\n        map[r.question_id].options.push({\n            id: r.option_id,\n            option_text: r.option_text,\n            is_correct: r.is_correct === 1,\n            position: r.option_position\n        });\n    }\n});\nmsg.statusCode = 200;\nmsg.payload = Object.values(map);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1010,
+        "y": 470,
+        "wires": [
+            [
+                "36c22283df32f3bf"
+            ]
+        ]
+    },
+    {
+        "id": "36c22283df32f3bf",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond questions",
+        "statusCode": "",
+        "headers": {},
+        "x": 1280,
+        "y": 470,
+        "wires": []
+    },
+    {
+        "id": "7d2e256ff205b6c5",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "POST /exams/:examId/submit",
+        "url": "/exams/:examId/submit",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 550,
+        "wires": [
+            [
+                "778ab86a634f3945"
+            ]
+        ]
+    },
+    {
+        "id": "778ab86a634f3945",
+        "type": "json",
+        "z": "30794f159cf617da",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 380,
+        "y": 550,
+        "wires": [
+            [
+                "310897d7bb8c4ad9"
+            ]
+        ]
+    },
+    {
+        "id": "310897d7bb8c4ad9",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Validate submit",
+        "func": "const examId = Number(msg.req.params.examId);\nconst body = msg.payload || {};\nconst studentId = Number(body.student_id);\nconst enrollmentId = body.enrollment_id ? Number(body.enrollment_id) : null;\n\nconst errors = [];\nif (!examId) errors.push(\"INVALID_EXAM_ID\");\nif (!studentId) errors.push(\"INVALID_STUDENT_ID\");\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", details: errors };\n    return [null, msg];\n}\n\nmsg._submit = { examId, studentId, enrollmentId };\nmsg.topic = \"SELECT id FROM exams WHERE id = ? AND is_published = 1 LIMIT 1\";\nmsg.payload = [examId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 650,
+        "y": 550,
+        "wires": [
+            [
+                "537bda0d88397a53"
+            ],
+            [
+                "f0908a2152e1c80f"
+            ]
+        ]
+    },
+    {
+        "id": "537bda0d88397a53",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Check exam for submit",
+        "x": 940,
+        "y": 550,
+        "wires": [
+            [
+                "822f597958a4b532"
+            ]
+        ]
+    },
+    {
+        "id": "822f597958a4b532",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Insert submission",
+        "x": 1220,
+        "y": 550,
+        "wires": [
+            [
+                "cc310b924a5fb862"
+            ]
+        ]
+    },
+    {
+        "id": "cc310b924a5fb862",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Return submit result",
+        "func": "const data = msg._submit;\nif (!data) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu submit.\" };\n    return msg;\n}\n\nif (msg.error) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: msg.error.message || \"Không thể lưu bài làm.\" };\n    delete msg._submit;\n    return msg;\n}\n\nconst ok = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nconst id = msg.insertId || ok?.insertId;\n\nmsg.statusCode = 201;\nmsg.payload = {\n    submission_id: id || null,\n    exam_id: data.examId,\n    student_id: data.studentId,\n    enrollment_id: data.enrollmentId,\n    status: \"submitted\"\n};\n\ndelete msg._submit;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1490,
+        "y": 550,
+        "wires": [
+            [
+                "f0908a2152e1c80f"
+            ]
+        ]
+    },
+    {
+        "id": "f0908a2152e1c80f",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond submit",
+        "statusCode": "",
+        "headers": {},
+        "x": 1760,
+        "y": 550,
+        "wires": []
+    },
+    {
+        "id": "9c0b20a9d2a8d68b",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "GET /instructors/:id/exams/:examId/submissions",
+        "url": "/instructors/:id/exams/:examId/submissions",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 630,
+        "wires": [
+            [
+                "55c4e78e9ee1742e"
+            ]
+        ]
+    },
+    {
+        "id": "55c4e78e9ee1742e",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Prep instr submissions",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst examId = Number(msg.req.params.examId);\n\nif (!instructorId || !examId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return [null, msg];\n}\n\nmsg.topic = \"SELECT s.id, s.exam_id, s.student_id, s.enrollment_id, s.started_at, s.submitted_at, s.status, s.total_score, s.graded_at, s.graded_by, u.full_name AS student_name, u.email AS student_email \\n             FROM exam_submissions s \\n             JOIN exams e ON e.id = s.exam_id \\n             JOIN courses c ON c.id = e.course_id \\n             JOIN users u ON u.id = s.student_id \\n             WHERE s.exam_id = ? AND c.instructor_id = ? \\n             ORDER BY s.submitted_at DESC, s.id DESC\";\nmsg.payload = [examId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 520,
+        "y": 630,
+        "wires": [
+            [
+                "f96f22ca6f973789"
+            ],
+            [
+                "4dfb389953e5a657"
+            ]
+        ]
+    },
+    {
+        "id": "f96f22ca6f973789",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query instr submissions",
+        "x": 850,
+        "y": 630,
+        "wires": [
+            [
+                "07fa8c9f61e355e1"
+            ]
+        ]
+    },
+    {
+        "id": "07fa8c9f61e355e1",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Format instr submissions",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    id: r.id,\n    exam_id: r.exam_id,\n    student_id: r.student_id,\n    student_name: r.student_name,\n    student_email: r.student_email,\n    enrollment_id: r.enrollment_id,\n    started_at: r.started_at,\n    submitted_at: r.submitted_at,\n    status: r.status,\n    total_score: r.total_score != null ? Number(r.total_score) : null,\n    graded_at: r.graded_at,\n    graded_by: r.graded_by\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1130,
+        "y": 630,
+        "wires": [
+            [
+                "4dfb389953e5a657"
+            ]
+        ]
+    },
+    {
+        "id": "4dfb389953e5a657",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond instr submissions",
+        "statusCode": "",
+        "headers": {},
+        "x": 1420,
+        "y": 630,
+        "wires": []
+    },
+    {
+        "id": "34887245b0a12441",
+        "type": "http in",
+        "z": "30794f159cf617da",
+        "name": "POST /instructors/:id/exams/:examId/grade",
+        "url": "/instructors/:id/exams/:examId/grade",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 710,
+        "wires": [
+            [
+                "19f73e7ae56be1b0"
+            ]
+        ]
+    },
+    {
+        "id": "19f73e7ae56be1b0",
+        "type": "json",
+        "z": "30794f159cf617da",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 430,
+        "y": 710,
+        "wires": [
+            [
+                "847e7f739b5489ed"
+            ]
+        ]
+    },
+    {
+        "id": "847e7f739b5489ed",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Validate grade",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst examId = Number(msg.req.params.examId);\nconst body = msg.payload || {};\n\nconst submissionId = Number(body.submission_id);\nconst score = body.total_score != null ? Number(body.total_score) : null;\n\nconst errors = [];\nif (!instructorId || !examId) errors.push(\"INVALID_PATH_PARAMS\");\nif (!submissionId) errors.push(\"INVALID_SUBMISSION_ID\");\nif (score == null || Number.isNaN(score)) errors.push(\"INVALID_SCORE\");\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", details: errors };\n    return [null, msg];\n}\n\nmsg._gradeExam = { instructorId, examId, submissionId, score };\nmsg.topic = \"SELECT s.id FROM exam_submissions s JOIN exams e ON e.id = s.exam_id JOIN courses c ON c.id = e.course_id WHERE s.id = ? AND e.id = ? AND c.instructor_id = ? LIMIT 1\";\nmsg.payload = [submissionId, examId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 720,
+        "y": 710,
+        "wires": [
+            [
+                "4acc9e080bd6ca20"
+            ],
+            [
+                "1649fdcb5e029938"
+            ]
+        ]
+    },
+    {
+        "id": "4acc9e080bd6ca20",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Check grade perm",
+        "x": 1010,
+        "y": 710,
+        "wires": [
+            [
+                "22c3c689c1128a5d"
+            ]
+        ]
+    },
+    {
+        "id": "22c3c689c1128a5d",
+        "type": "mysql",
+        "z": "30794f159cf617da",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Update grade",
+        "x": 1290,
+        "y": 710,
+        "wires": [
+            [
+                "92bc26e632d0249d"
+            ]
+        ]
+    },
+    {
+        "id": "92bc26e632d0249d",
+        "type": "function",
+        "z": "30794f159cf617da",
+        "name": "Return grade",
+        "func": "const data = msg._gradeExam;\nif (!data) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu chấm điểm.\" };\n    return msg;\n}\n\nif (msg.error) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: msg.error.message || \"Không thể chấm điểm.\" };\n    delete msg._gradeExam;\n    return msg;\n}\n\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    submission_id: data.submissionId,\n    exam_id: data.examId,\n    total_score: data.score\n};\n\ndelete msg._gradeExam;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1570,
+        "y": 710,
+        "wires": [
+            [
+                "1649fdcb5e029938"
+            ]
+        ]
+    },
+    {
+        "id": "1649fdcb5e029938",
+        "type": "http response",
+        "z": "30794f159cf617da",
+        "name": "Respond grade exam",
+        "statusCode": "",
+        "headers": {},
+        "x": 1840,
+        "y": 710,
+        "wires": []
+    },
+    {
+        "id": "a6ce794eb33f08dc",
+        "type": "http in",
+        "z": "b4aafc47f2dfdc53",
+        "name": "GET /instructors/:id/courses/:courseId/assignments",
+        "url": "/instructors/:id/courses/:courseId/assignments",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 80,
+        "wires": [
+            [
+                "cb5ce38175d81b4a"
+            ]
+        ]
+    },
+    {
+        "id": "cb5ce38175d81b4a",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Prep list assignments",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst courseId = Number(msg.req.params.courseId);\n\nif (!instructorId || !courseId) {\n    msg.statusCode = 400;\n    msg.payload = {\n        error: \"INVALID_REQUEST\",\n        message: \"instructorId và courseId không hợp lệ.\"\n    };\n    return [null, msg];\n}\n\nmsg.topic = \"SELECT a.id, a.course_id, a.lesson_id, a.title, a.description, a.max_score, a.due_at, a.is_published, a.created_at, a.updated_at, l.title AS lesson_title \\n            FROM assignments a \\n            LEFT JOIN lessons l ON l.id = a.lesson_id \\n            JOIN courses c ON c.id = a.course_id \\n            WHERE a.course_id = ? AND c.instructor_id = ? \\n            ORDER BY a.due_at IS NULL, a.due_at ASC, a.id ASC\";\nmsg.payload = [courseId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 460,
+        "y": 80,
+        "wires": [
+            [
+                "ab24bc90c3318574"
+            ],
+            [
+                "e5e7fcf5b3d95ea1"
+            ]
+        ]
+    },
+    {
+        "id": "ab24bc90c3318574",
+        "type": "mysql",
+        "z": "b4aafc47f2dfdc53",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query assignments",
+        "x": 780,
+        "y": 80,
+        "wires": [
+            [
+                "cb8dc4c133322abc"
+            ]
+        ]
+    },
+    {
+        "id": "cb8dc4c133322abc",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Format assignments",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    id: r.id,\n    course_id: r.course_id,\n    lesson_id: r.lesson_id,\n    lesson_title: r.lesson_title,\n    title: r.title,\n    description: r.description,\n    max_score: r.max_score != null ? Number(r.max_score) : null,\n    due_at: r.due_at,\n    is_published: r.is_published === 1,\n    created_at: r.created_at,\n    updated_at: r.updated_at\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1040,
+        "y": 80,
+        "wires": [
+            [
+                "e5e7fcf5b3d95ea1"
+            ]
+        ]
+    },
+    {
+        "id": "e5e7fcf5b3d95ea1",
+        "type": "http response",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Respond list assignments",
+        "statusCode": "",
+        "headers": {},
+        "x": 1320,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ab448c2a11a44b40",
+        "type": "http in",
+        "z": "b4aafc47f2dfdc53",
+        "name": "POST /instructors/:id/courses/:courseId/assignments",
+        "url": "/instructors/:id/courses/:courseId/assignments",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 120,
+        "wires": [
+            [
+                "9dfb74aa02c225e7"
+            ]
+        ]
+    },
+    {
+        "id": "9dfb74aa02c225e7",
+        "type": "json",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 450,
+        "y": 120,
+        "wires": [
+            [
+                "0cf3fced396e1b74"
+            ]
+        ]
+    },
+    {
+        "id": "0cf3fced396e1b74",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Validate & prep create assignment",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst courseId = Number(msg.req.params.courseId);\nconst body = msg.payload || {};\n\nconst title = (body.title || \"\").trim();\nconst description = body.description || null;\nconst maxScore = body.max_score != null ? Number(body.max_score) : 10;\nconst dueAt = body.due_at || null;\nconst isPublished = body.is_published ? 1 : 0;\nconst lessonId = body.lesson_id != null ? Number(body.lesson_id) : null;\n\nconst errors = [];\nif (!instructorId || !courseId) errors.push(\"INVALID_PATH_PARAMS\");\nif (!title) errors.push(\"INVALID_TITLE\");\nif (Number.isNaN(maxScore) || maxScore <= 0) errors.push(\"INVALID_MAX_SCORE\");\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", details: errors };\n    return [null, msg];\n}\n\nmsg._newAssignment = { instructorId, courseId, title, description, maxScore, dueAt, isPublished, lessonId };\nmsg.topic = \"SELECT id FROM courses WHERE id = ? AND instructor_id = ? LIMIT 1\";\nmsg.payload = [courseId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 120,
+        "wires": [
+            [
+                "5a9dfc3e4a66f02a"
+            ],
+            [
+                "6cfcb69a72f9d2be"
+            ]
+        ]
+    },
+    {
+        "id": "5a9dfc3e4a66f02a",
+        "type": "mysql",
+        "z": "b4aafc47f2dfdc53",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Check course+instructor (assignment)",
+        "x": 1140,
+        "y": 120,
+        "wires": [
+            [
+                "bf7adcbe101874c8"
+            ]
+        ]
+    },
+    {
+        "id": "bf7adcbe101874c8",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Prepare INSERT assignment",
+        "func": "const data = msg._newAssignment;\nconst rows = msg.payload || [];\n\nif (!data) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu bài tập.\" };\n    return [null, msg];\n}\n\nif (!rows.length) {\n    msg.statusCode = 403;\n    msg.payload = { error: \"FORBIDDEN\", message: \"Bạn không phải giảng viên của khóa học này.\" };\n    delete msg._newAssignment;\n    return [null, msg];\n}\n\nmsg.topic = \"INSERT INTO assignments (course_id, lesson_id, title, description, max_score, due_at, is_published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())\";\nmsg.payload = [\n    data.courseId,\n    data.lessonId,\n    data.title,\n    data.description,\n    data.maxScore,\n    data.dueAt,\n    data.isPublished\n];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1540,
+        "y": 120,
+        "wires": [
+            [
+                "356189a4710d5440"
+            ],
+            [
+                "6cfcb69a72f9d2be"
+            ]
+        ]
+    },
+    {
+        "id": "356189a4710d5440",
+        "type": "mysql",
+        "z": "b4aafc47f2dfdc53",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Insert assignment",
+        "x": 1880,
+        "y": 120,
+        "wires": [
+            [
+                "8078afabb36a44b5"
+            ]
+        ]
+    },
+    {
+        "id": "8078afabb36a44b5",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Return 201 assignment",
+        "func": "if (msg.error) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: msg.error.message || \"Không thể tạo bài tập.\" };\n    delete msg._newAssignment;\n    return msg;\n}\n\nconst ok = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nconst id = msg.insertId || ok?.insertId;\nconst data = msg._newAssignment || {};\n\nif (!id) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Không xác định được ID bài tập.\" };\n    delete msg._newAssignment;\n    return msg;\n}\n\nmsg.statusCode = 201;\nmsg.payload = {\n    id,\n    course_id: data.courseId,\n    lesson_id: data.lessonId,\n    title: data.title,\n    description: data.description,\n    max_score: data.maxScore,\n    due_at: data.dueAt,\n    is_published: !!data.isPublished\n};\n\ndelete msg._newAssignment;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2190,
+        "y": 120,
+        "wires": [
+            [
+                "6cfcb69a72f9d2be"
+            ]
+        ]
+    },
+    {
+        "id": "6cfcb69a72f9d2be",
+        "type": "http response",
+        "z": "b4aafc47f2dfdc53",
+        "name": "RESP create assignment",
+        "statusCode": "",
+        "headers": {},
+        "x": 2470,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "8826dcd3f11559f4",
+        "type": "http in",
+        "z": "b4aafc47f2dfdc53",
+        "name": "GET /instructors/:id/assignments/:assignmentId/submissions",
+        "url": "/instructors/:id/assignments/:assignmentId/submissions",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 180,
+        "wires": [
+            [
+                "0f55a3c3d20142d0"
+            ]
+        ]
+    },
+    {
+        "id": "0f55a3c3d20142d0",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Prep list submissions",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst assignmentId = Number(msg.req.params.assignmentId);\n\nif (!instructorId || !assignmentId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return [null, msg];\n}\n\nmsg.topic = \"SELECT s.id, s.assignment_id, s.student_id, s.enrollment_id, s.submitted_at, s.content_text, s.content_url, s.status, s.score, s.feedback, s.graded_at, s.graded_by, u.full_name AS student_name, u.email AS student_email \\n            FROM assignment_submissions s \\n            JOIN assignments a ON a.id = s.assignment_id \\n            JOIN courses c ON c.id = a.course_id \\n            JOIN users u ON u.id = s.student_id \\n            WHERE s.assignment_id = ? AND c.instructor_id = ? \\n            ORDER BY s.submitted_at DESC, s.id DESC\";\nmsg.payload = [assignmentId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "x": 520,
+        "y": 180,
+        "wires": [
+            [
+                "7aee8fcf2fe5cae7"
+            ],
+            [
+                "05d1e197d030505f"
+            ]
+        ]
+    },
+    {
+        "id": "7aee8fcf2fe5cae7",
+        "type": "mysql",
+        "z": "b4aafc47f2dfdc53",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query submissions",
+        "x": 820,
+        "y": 180,
+        "wires": [
+            [
+                "1b2b9ba0664d88e1"
+            ]
+        ]
+    },
+    {
+        "id": "1b2b9ba0664d88e1",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Format submissions",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    id: r.id,\n    assignment_id: r.assignment_id,\n    student_id: r.student_id,\n    student_name: r.student_name,\n    student_email: r.student_email,\n    enrollment_id: r.enrollment_id,\n    submitted_at: r.submitted_at,\n    content_text: r.content_text,\n    content_url: r.content_url,\n    status: r.status,\n    score: r.score != null ? Number(r.score) : null,\n    feedback: r.feedback,\n    graded_at: r.graded_at,\n    graded_by: r.graded_by\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1120,
+        "y": 180,
+        "wires": [
+            [
+                "05d1e197d030505f"
+            ]
+        ]
+    },
+    {
+        "id": "05d1e197d030505f",
+        "type": "http response",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Respond list submissions",
+        "statusCode": "",
+        "headers": {},
+        "x": 1410,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "e14ef09c7054ed9a",
+        "type": "http in",
+        "z": "b4aafc47f2dfdc53",
+        "name": "POST /instructors/:id/assignments/:assignmentId/grade",
+        "url": "/instructors/:id/assignments/:assignmentId/grade",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 280,
+        "wires": [
+            [
+                "9e121ba085094535"
+            ]
+        ]
+    },
+    {
+        "id": "9e121ba085094535",
+        "type": "json",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 430,
+        "y": 280,
+        "wires": [
+            [
+                "11639444f26febfe"
+            ]
+        ]
+    },
+    {
+        "id": "11639444f26febfe",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Validate & prep grade",
+        "func": "const instructorId = Number(msg.req.params.id);\nconst assignmentId = Number(msg.req.params.assignmentId);\nconst body = msg.payload || {};\n\nconst studentId = Number(body.student_id);\nconst score = body.score != null ? Number(body.score) : null;\nconst feedback = body.feedback || null;\n\nconst errors = [];\nif (!instructorId || !assignmentId) errors.push(\"INVALID_PATH_PARAMS\");\nif (!studentId) errors.push(\"INVALID_STUDENT_ID\");\nif (score == null || Number.isNaN(score)) errors.push(\"INVALID_SCORE\");\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", details: errors };\n    return [null, msg];\n}\n\nmsg._grade = { instructorId, assignmentId, studentId, score, feedback };\nmsg.topic = \"SELECT a.id AS assignment_id, a.max_score, c.id AS course_id \\n             FROM assignments a \\n             JOIN courses c ON c.id = a.course_id \\n             WHERE a.id = ? AND c.instructor_id = ? LIMIT 1\";\nmsg.payload = [assignmentId, instructorId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 730,
+        "y": 280,
+        "wires": [
+            [
+                "6c517eeb28c4ed08"
+            ],
+            [
+                "737726d66d636258"
+            ]
+        ]
+    },
+    {
+        "id": "6c517eeb28c4ed08",
+        "type": "mysql",
+        "z": "b4aafc47f2dfdc53",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Fetch assignment for grade",
+        "x": 1060,
+        "y": 280,
+        "wires": [
+            [
+                "5190fad53da108dc"
+            ]
+        ]
+    },
+    {
+        "id": "5190fad53da108dc",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Prep upsert grade",
+        "func": "const grade = msg._grade;\nconst rows = msg.payload || [];\n\nif (!grade) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu chấm điểm.\" };\n    return [null, msg];\n}\n\nif (!rows.length) {\n    msg.statusCode = 403;\n    msg.payload = { error: \"FORBIDDEN\", message: \"Bạn không phải giảng viên của bài tập này hoặc bài tập không tồn tại.\" };\n    delete msg._grade;\n    return [null, msg];\n}\n\nconst assignment = rows[0];\nif (assignment.max_score != null) {\n    const maxScore = Number(assignment.max_score);\n    if (!Number.isNaN(maxScore) && grade.score > maxScore) {\n        msg.statusCode = 400;\n        msg.payload = { error: \"INVALID_SCORE\", message: \"Điểm vượt quá giới hạn cho phép.\" };\n        return [null, msg];\n    }\n}\n\nmsg.topic = \"UPDATE assignment_submissions SET score = ?, feedback = ?, graded_at = NOW(), graded_by = ? WHERE assignment_id = ? AND student_id = ?\";\nmsg.payload = [\n    grade.score,\n    grade.feedback,\n    grade.instructorId,\n    grade.assignmentId,\n    grade.studentId\n];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1350,
+        "y": 280,
+        "wires": [
+            [
+                "42d9625ab6a17e29"
+            ],
+            [
+                "737726d66d636258"
+            ]
+        ]
+    },
+    {
+        "id": "42d9625ab6a17e29",
+        "type": "mysql",
+        "z": "b4aafc47f2dfdc53",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Upsert grade",
+        "x": 1640,
+        "y": 280,
+        "wires": [
+            [
+                "33efeb5be4953855"
+            ]
+        ]
+    },
+    {
+        "id": "33efeb5be4953855",
+        "type": "function",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Return grade result",
+        "func": "if (msg.error) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: msg.error.message || \"Không thể chấm điểm.\" };\n    delete msg._grade;\n    return msg;\n}\n\nconst grade = msg._grade;\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    assignment_id: grade.assignmentId,\n    student_id: grade.studentId,\n    score: grade.score,\n    feedback: grade.feedback\n};\n\ndelete msg._grade;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1640,
+        "y": 280,
+        "wires": [
+            [
+                "737726d66d636258"
+            ]
+        ]
+    },
+    {
+        "id": "737726d66d636258",
+        "type": "http response",
+        "z": "b4aafc47f2dfdc53",
+        "name": "Respond grade assignment",
+        "statusCode": "",
+        "headers": {},
+        "x": 1910,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "8bd900a21326c71c",
+        "type": "http in",
+        "z": "eeac5874f5147587",
+        "name": "GET /students/:id/courses/:courseId/assignments",
+        "url": "/students/:id/courses/:courseId/assignments",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 60,
+        "wires": [
+            [
+                "7d15722692140b3c"
+            ]
+        ]
+    },
+    {
+        "id": "7d15722692140b3c",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Prep student assignments",
+        "func": "const studentId = Number(msg.req.params.id);\nconst courseId = Number(msg.req.params.courseId);\n\nif (!studentId || !courseId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return [null, msg];\n}\n\n// Chỉ lấy bài tập của các khóa mà học viên đã ENROLL\nmsg.topic = \"SELECT a.id, a.course_id, a.lesson_id, a.title, a.description, a.max_score, a.due_at, a.is_published, a.created_at, a.updated_at,\\n                    s.id AS submission_id, s.status, s.score, s.feedback, s.submitted_at\\n             FROM enrollments e\\n             JOIN assignments a ON a.course_id = e.course_id AND a.is_published = 1\\n             LEFT JOIN assignment_submissions s\\n               ON s.assignment_id = a.id AND s.student_id = e.user_id\\n             WHERE e.user_id = ? AND e.course_id = ?\\n             ORDER BY a.due_at IS NULL, a.due_at ASC, a.id ASC\";\nmsg.payload = [studentId, courseId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 520,
+        "y": 60,
+        "wires": [
+            [
+                "df67c0a3061b9a23"
+            ],
+            [
+                "efe63d6611be4df2"
+            ]
+        ]
+    },
+    {
+        "id": "df67c0a3061b9a23",
+        "type": "mysql",
+        "z": "eeac5874f5147587",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query student assignments",
+        "x": 850,
+        "y": 60,
+        "wires": [
+            [
+                "224cdf63aa0cb165"
+            ]
+        ]
+    },
+    {
+        "id": "224cdf63aa0cb165",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Format student assignments",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    id: r.id,\n    course_id: r.course_id,\n    lesson_id: r.lesson_id,\n    title: r.title,\n    description: r.description,\n    max_score: r.max_score != null ? Number(r.max_score) : null,\n    due_at: r.due_at,\n    is_published: r.is_published === 1,\n    created_at: r.created_at,\n    updated_at: r.updated_at,\n    submission_id: r.submission_id || null,\n    status: r.status || (r.submission_id ? \"submitted\" : \"not_submitted\"),\n    score: r.score != null ? Number(r.score) : null,\n    feedback: r.feedback || null,\n    submitted_at: r.submitted_at\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1180,
+        "y": 60,
+        "wires": [
+            [
+                "efe63d6611be4df2"
+            ]
+        ]
+    },
+    {
+        "id": "efe63d6611be4df2",
+        "type": "http response",
+        "z": "eeac5874f5147587",
+        "name": "RESP student assignments",
+        "statusCode": "",
+        "headers": {},
+        "x": 1490,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "02b4c09712de6bbd",
+        "type": "http in",
+        "z": "eeac5874f5147587",
+        "name": "POST /students/:id/assignments/:assignmentId/submit",
+        "url": "/students/:id/assignments/:assignmentId/submit",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 130,
+        "wires": [
+            [
+                "6843eb6c5d97b37f"
+            ]
+        ]
+    },
+    {
+        "id": "6843eb6c5d97b37f",
+        "type": "json",
+        "z": "eeac5874f5147587",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 480,
+        "y": 130,
+        "wires": [
+            [
+                "e6a77fbcd20024c4"
+            ]
+        ]
+    },
+    {
+        "id": "e6a77fbcd20024c4",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Validate submit assignment",
+        "func": "const studentId = Number(msg.req.params.id);\nconst assignmentId = Number(msg.req.params.assignmentId);\nconst body = msg.payload || {};\n\nconst contentText = (body.content_text || \"\").trim();\nconst contentUrl = (body.content_url || \"\").trim() || null;\n\nconst errors = [];\nif (!studentId || !assignmentId) errors.push(\"INVALID_PATH_PARAMS\");\nif (!contentText && !contentUrl) errors.push(\"EMPTY_SUBMISSION\");\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\", details: errors };\n    return [null, msg];\n}\n\nmsg._studentSubmission = { studentId, assignmentId, contentText, contentUrl };\n\n// Chỉ cho nộp nếu đã ENROLL vào khóa chứa bài tập này\nmsg.topic = \"INSERT INTO assignment_submissions (assignment_id, student_id, submitted_at, content_text, content_url, status) \\n             SELECT ?, ?, NOW(), ?, ?, 'submitted'\\n             FROM assignments a\\n             JOIN enrollments e ON e.course_id = a.course_id AND e.user_id = ?\\n             WHERE a.id = ?\\n             ON DUPLICATE KEY UPDATE\\n               submitted_at = VALUES(submitted_at),\\n               content_text = VALUES(content_text),\\n               content_url = VALUES(content_url),\\n               status = 'submitted'\";\nmsg.payload = [assignmentId, studentId, contentText || null, contentUrl, studentId, assignmentId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 820,
+        "y": 130,
+        "wires": [
+            [
+                "5a46071b596e8790"
+            ],
+            [
+                "2ef99567d15aa624"
+            ]
+        ]
+    },
+    {
+        "id": "5a46071b596e8790",
+        "type": "mysql",
+        "z": "eeac5874f5147587",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Upsert submission",
+        "x": 1170,
+        "y": 130,
+        "wires": [
+            [
+                "46cfa6c03720c547"
+            ]
+        ]
+    },
+    {
+        "id": "46cfa6c03720c547",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Return submit result",
+        "func": "if (msg.error) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: msg.error.message || \"Không thể nộp bài.\" };\n    delete msg._studentSubmission;\n    return msg;\n}\n\nconst sub = msg._studentSubmission;\nmsg.statusCode = 201;\nmsg.payload = {\n    success: true,\n    assignment_id: sub.assignmentId,\n    student_id: sub.studentId\n};\n\ndelete msg._studentSubmission;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1490,
+        "y": 130,
+        "wires": [
+            [
+                "2ef99567d15aa624"
+            ]
+        ]
+    },
+    {
+        "id": "2ef99567d15aa624",
+        "type": "http response",
+        "z": "eeac5874f5147587",
+        "name": "RESP submit assignment",
+        "statusCode": "",
+        "headers": {},
+        "x": 1800,
+        "y": 130,
+        "wires": []
+    },
+    {
+        "id": "3149597b5556ba81",
+        "type": "http in",
+        "z": "eeac5874f5147587",
+        "name": "GET /students/:id/courses/:courseId/exams",
+        "url": "/students/:id/courses/:courseId/exams",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 210,
+        "wires": [
+            [
+                "0bebf1dc4605af93"
+            ]
+        ]
+    },
+    {
+        "id": "0bebf1dc4605af93",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Prep student exams",
+        "func": "const studentId = Number(msg.req.params.id);\nconst courseId = Number(msg.req.params.courseId);\n\nif (!studentId || !courseId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return [null, msg];\n}\n\nmsg.topic = \"SELECT ex.id, ex.course_id, ex.title, ex.description, ex.max_score, ex.duration_minutes, ex.start_at, ex.end_at, ex.attempt_limit, ex.is_published,\\n                    s.id AS submission_id, s.status AS submission_status, s.total_score\\n             FROM enrollments e\\n             JOIN exams ex ON ex.course_id = e.course_id AND ex.is_published = 1\\n             LEFT JOIN exam_submissions s\\n               ON s.exam_id = ex.id AND s.student_id = e.user_id\\n             WHERE e.user_id = ? AND e.course_id = ?\\n             ORDER BY ex.start_at IS NULL, ex.start_at ASC, ex.id ASC\";\nmsg.payload = [studentId, courseId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 520,
+        "y": 210,
+        "wires": [
+            [
+                "b05d162198a18409"
+            ],
+            [
+                "4e347da01d044f32"
+            ]
+        ]
+    },
+    {
+        "id": "b05d162198a18409",
+        "type": "mysql",
+        "z": "eeac5874f5147587",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query student exams",
+        "x": 850,
+        "y": 210,
+        "wires": [
+            [
+                "50c31b7472c8994b"
+            ]
+        ]
+    },
+    {
+        "id": "50c31b7472c8994b",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Format student exams",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    id: r.id,\n    course_id: r.course_id,\n    title: r.title,\n    description: r.description,\n    max_score: r.max_score != null ? Number(r.max_score) : null,\n    duration_minutes: r.duration_minutes,\n    start_at: r.start_at,\n    end_at: r.end_at,\n    attempt_limit: r.attempt_limit,\n    is_published: r.is_published === 1,\n    submission_id: r.submission_id || null,\n    submission_status: r.submission_status || (r.submission_id ? \"submitted\" : \"not_submitted\"),\n    total_score: r.total_score != null ? Number(r.total_score) : null\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1180,
+        "y": 210,
+        "wires": [
+            [
+                "4e347da01d044f32"
+            ]
+        ]
+    },
+    {
+        "id": "4e347da01d044f32",
+        "type": "http response",
+        "z": "eeac5874f5147587",
+        "name": "RESP student exams",
+        "statusCode": "",
+        "headers": {},
+        "x": 1490,
+        "y": 210,
+        "wires": []
+    },
+    {
+        "id": "ce6f2526178dad42",
+        "type": "http in",
+        "z": "eeac5874f5147587",
+        "name": "GET /students/:id/progress/assignments",
+        "url": "/students/:id/progress/assignments",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 290,
+        "wires": [
+            [
+                "089cbc627e65d770"
+            ]
+        ]
+    },
+    {
+        "id": "089cbc627e65d770",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Prep progress assignments",
+        "func": "const studentId = Number(msg.req.params.id);\nif (!studentId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return msg;\n}\n\nmsg.topic = \"SELECT e.id AS enrollment_id, e.course_id, c.title AS course_title,\\n                    a.id AS assignment_id, a.title AS assignment_title, a.max_score, a.due_at, a.is_published,\\n                    s.status, s.score, s.feedback, s.submitted_at\\n             FROM enrollments e\\n             JOIN courses c ON c.id = e.course_id\\n             LEFT JOIN assignments a ON a.course_id = e.course_id AND a.is_published = 1\\n             LEFT JOIN assignment_submissions s\\n               ON s.assignment_id = a.id AND s.student_id = e.user_id\\n             WHERE e.user_id = ?\\n             ORDER BY c.title ASC, a.due_at IS NULL, a.due_at ASC, a.id ASC\";\nmsg.payload = [studentId];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 560,
+        "y": 290,
+        "wires": [
+            [
+                "438fe50b9f38c447"
+            ]
+        ]
+    },
+    {
+        "id": "438fe50b9f38c447",
+        "type": "mysql",
+        "z": "eeac5874f5147587",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query progress assignments",
+        "x": 910,
+        "y": 290,
+        "wires": [
+            [
+                "fae29749bdc2874e"
+            ]
+        ]
+    },
+    {
+        "id": "fae29749bdc2874e",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Format progress assignments",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    enrollment_id: r.enrollment_id,\n    course_id: r.course_id,\n    course_title: r.course_title,\n    assignment_id: r.assignment_id,\n    assignment_title: r.assignment_title,\n    max_score: r.max_score != null ? Number(r.max_score) : null,\n    due_at: r.due_at,\n    is_published: r.is_published === 1,\n    status: r.status || (r.assignment_id ? \"not_submitted\" : null),\n    score: r.score != null ? Number(r.score) : null,\n    feedback: r.feedback || null,\n    submitted_at: r.submitted_at\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1240,
+        "y": 290,
+        "wires": [
+            [
+                "f7adb9cb10cb8786"
+            ]
+        ]
+    },
+    {
+        "id": "f7adb9cb10cb8786",
+        "type": "http response",
+        "z": "eeac5874f5147587",
+        "name": "RESP progress assignments",
+        "statusCode": "",
+        "headers": {},
+        "x": 1570,
+        "y": 290,
+        "wires": []
+    },
+    {
+        "id": "8283a2c1811e6d31",
+        "type": "http in",
+        "z": "eeac5874f5147587",
+        "name": "GET /students/:id/progress/exams",
+        "url": "/students/:id/progress/exams",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 370,
+        "wires": [
+            [
+                "c663e224fd63d6c3"
+            ]
+        ]
+    },
+    {
+        "id": "c663e224fd63d6c3",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Prep progress exams",
+        "func": "const studentId = Number(msg.req.params.id);\nif (!studentId) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"INVALID_REQUEST\" };\n    return msg;\n}\n\nmsg.topic = \"SELECT e.id AS enrollment_id, e.course_id, c.title AS course_title,\\n                    ex.id AS exam_id, ex.title AS exam_title, ex.max_score, ex.duration_minutes, ex.start_at, ex.end_at, ex.is_published,\\n                    s.status, s.total_score, s.submitted_at\\n             FROM enrollments e\\n             JOIN courses c ON c.id = e.course_id\\n             LEFT JOIN exams ex ON ex.course_id = e.course_id AND ex.is_published = 1\\n             LEFT JOIN exam_submissions s\\n               ON s.exam_id = ex.id AND s.student_id = e.user_id\\n             WHERE e.user_id = ?\\n             ORDER BY c.title ASC, ex.start_at IS NULL, ex.start_at ASC, ex.id ASC\";\nmsg.payload = [studentId];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 540,
+        "y": 370,
+        "wires": [
+            [
+                "604dae5ae6e5f591"
+            ]
+        ]
+    },
+    {
+        "id": "604dae5ae6e5f591",
+        "type": "mysql",
+        "z": "eeac5874f5147587",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Query progress exams",
+        "x": 880,
+        "y": 370,
+        "wires": [
+            [
+                "5728da423b9b2b25"
+            ]
+        ]
+    },
+    {
+        "id": "5728da423b9b2b25",
+        "type": "function",
+        "z": "eeac5874f5147587",
+        "name": "Format progress exams",
+        "func": "const rows = msg.payload || [];\nmsg.statusCode = 200;\nmsg.payload = rows.map(r => ({\n    enrollment_id: r.enrollment_id,\n    course_id: r.course_id,\n    course_title: r.course_title,\n    exam_id: r.exam_id,\n    exam_title: r.exam_title,\n    max_score: r.max_score != null ? Number(r.max_score) : null,\n    duration_minutes: r.duration_minutes,\n    start_at: r.start_at,\n    end_at: r.end_at,\n    is_published: r.is_published === 1,\n    status: r.status || (r.exam_id ? \"not_submitted\" : null),\n    total_score: r.total_score != null ? Number(r.total_score) : null,\n    submitted_at: r.submitted_at\n}));\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1210,
+        "y": 370,
+        "wires": [
+            [
+                "5f4c11ba98bc51ab"
+            ]
+        ]
+    },
+    {
+        "id": "5f4c11ba98bc51ab",
+        "type": "http response",
+        "z": "eeac5874f5147587",
+        "name": "RESP progress exams",
+        "statusCode": "",
+        "headers": {},
+        "x": 1530,
+        "y": 370,
+        "wires": []
+    },
+    {
+        "id": "8c96e5b7df62d594",
+        "type": "http in",
+        "z": "fed3a4a68ff54e5d",
+        "name": "POST /auth/register",
+        "url": "/auth/register",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 160,
+        "y": 120,
+        "wires": [
+            [
+                "4b844160ada26239"
+            ]
+        ]
+    },
+    {
+        "id": "4b844160ada26239",
+        "type": "json",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 350,
+        "y": 120,
+        "wires": [
+            [
+                "865a437d2272fe5f"
+            ]
+        ]
+    },
+    {
+        "id": "865a437d2272fe5f",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Validate register",
+        "func": "const { username, password_hash, full_name, email } = msg.payload || {};\nconst errors = [];\n\nconst trimmed = {\n    username: (username || \"\").trim(),\n    full_name: (full_name || \"\").trim(),\n    email: (email || \"\").trim()\n};\n\nif (!trimmed.username || trimmed.username.length < 3) {\n    errors.push(\"INVALID_USERNAME\");\n}\nif (!trimmed.full_name) {\n    errors.push(\"INVALID_FULL_NAME\");\n}\nif (!trimmed.email || !/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(trimmed.email)) {\n    errors.push(\"INVALID_EMAIL\");\n}\nif (!password_hash) {\n    errors.push(\"INVALID_PASSWORD_HASH\");\n}\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = {\n        error: \"INVALID_REQUEST\",\n        message: \"Dữ liệu đăng ký không hợp lệ.\",\n        details: errors\n    };\n    return [null, msg];\n}\n\nmsg._userData = {\n    username: trimmed.username,\n    password_hash,\n    full_name: trimmed.full_name,\n    email: trimmed.email,\n    role: \"student\"\n};\n\nmsg.topic = \"SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1\";\nmsg.payload = [msg._userData.username, msg._userData.email];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 120,
+        "wires": [
+            [
+                "9b592cf35cb50d70"
+            ],
+            [
+                "fa7f5244e9562918"
+            ]
+        ]
+    },
+    {
+        "id": "9b592cf35cb50d70",
+        "type": "mysql",
+        "z": "fed3a4a68ff54e5d",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Check duplicate",
+        "x": 800,
+        "y": 120,
+        "wires": [
+            [
+                "8d130cc379148d47"
+            ]
+        ]
+    },
+    {
+        "id": "8d130cc379148d47",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Handle duplicate",
+        "func": "const userData = msg._userData;\nif (!userData) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu đăng ký.\" };\n    return [null, msg];\n}\nconst rows = msg.payload || [];\nif (rows.length) {\n    msg.statusCode = 409;\n    msg.payload = { error: \"USER_EXISTS\", message: \"Tên đăng nhập hoặc email đã tồn tại.\" };\n    delete msg._userData;\n    return [null, msg];\n}\nmsg.topic = \"SELECT id FROM roles WHERE name = ? LIMIT 1\";\nmsg.payload = [userData.role];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 120,
+        "wires": [
+            [
+                "28eca9821e6245c5"
+            ],
+            [
+                "fa7f5244e9562918"
+            ]
+        ]
+    },
+    {
+        "id": "28eca9821e6245c5",
+        "type": "mysql",
+        "z": "fed3a4a68ff54e5d",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Fetch role id",
+        "x": 1260,
+        "y": 120,
+        "wires": [
+            [
+                "d8bdb569547b4e84"
+            ]
+        ]
+    },
+    {
+        "id": "d8bdb569547b4e84",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Prepare insert user",
+        "func": "const rows = msg.payload || [];\nconst userData = msg._userData;\nif (!userData) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu đăng ký.\" };\n    return [null, msg];\n}\nif (!rows.length || !rows[0].id) {\n    msg.statusCode = 400;\n    msg.payload = { error: \"ROLE_NOT_FOUND\", message: \"Vai trò không hợp lệ.\" };\n    delete msg._userData;\n    return [null, msg];\n}\nmsg._roleId = rows[0].id;\nmsg.topic = \"INSERT INTO users (username, password_hash, full_name, email, avatar_url, bio, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, NULL, NULL, 1, NOW(), NOW())\";\nmsg.payload = [userData.username, userData.password_hash, userData.full_name, userData.email];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1490,
+        "y": 120,
+        "wires": [
+            [
+                "37381e8348f57708"
+            ],
+            [
+                "fa7f5244e9562918"
+            ]
+        ]
+    },
+    {
+        "id": "37381e8348f57708",
+        "type": "mysql",
+        "z": "fed3a4a68ff54e5d",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Insert user",
+        "x": 1710,
+        "y": 120,
+        "wires": [
+            [
+                "1c984cd1e1e05d9f"
+            ]
+        ]
+    },
+    {
+        "id": "1c984cd1e1e05d9f",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Assign role",
+        "func": "if (msg.error) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: msg.error.message || \"Không thể tạo tài khoản.\" };\n    delete msg._userData;\n    delete msg._roleId;\n    return [null, msg];\n}\nconst okPacket = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nconst userId = msg.insertId || okPacket?.insertId;\nconst userData = msg._userData;\nconst roleId = msg._roleId;\nif (!userId || !userData || !roleId) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Không thể tạo tài khoản.\" };\n    delete msg._userData;\n    delete msg._roleId;\n    return [null, msg];\n}\nmsg._newUserId = userId;\nmsg.topic = \"INSERT INTO user_roles (user_id, role_id, assigned_at) VALUES (?, ?, NOW()) ON DUPLICATE KEY UPDATE assigned_at = VALUES(assigned_at)\";\nmsg.payload = [userId, roleId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1930,
+        "y": 120,
+        "wires": [
+            [
+                "82c3d8d074b58a3e"
+            ],
+            [
+                "fa7f5244e9562918"
+            ]
+        ]
+    },
+    {
+        "id": "82c3d8d074b58a3e",
+        "type": "mysql",
+        "z": "fed3a4a68ff54e5d",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Persist role link",
+        "x": 2150,
+        "y": 120,
+        "wires": [
+            [
+                "85500e9a8a05556c"
+            ]
+        ]
+    },
+    {
+        "id": "85500e9a8a05556c",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Return register result",
+        "func": "if (msg.error) {\n    msg.statusCode = msg.error.statusCode || 500;\n    msg.payload = msg.payload && msg.payload.error ? msg.payload : { error: \"SERVER_ERROR\", message: msg.error.message };\n    return msg;\n}\nconst userData = msg._userData;\nconst okPacket = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\nconst userId = msg._newUserId || msg.insertId || okPacket?.insertId;\nif (!userData || !userId) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Không thể tạo tài khoản.\" };\n    return msg;\n}\nmsg.statusCode = 201;\nmsg.payload = {\n    id: userId,\n    username: userData.username,\n    full_name: userData.full_name,\n    email: userData.email,\n    role: userData.role\n};\ndelete msg._userData;\ndelete msg._roleId;\ndelete msg._newUserId;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2380,
+        "y": 120,
+        "wires": [
+            [
+                "fa7f5244e9562918"
+            ]
+        ]
+    },
+    {
+        "id": "fa7f5244e9562918",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "To response",
+        "func": "return msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2600,
+        "y": 120,
+        "wires": [
+            [
+                "074a40d514991acb"
+            ]
+        ]
+    },
+    {
+        "id": "09e79cea2347bf48",
+        "type": "http in",
+        "z": "fed3a4a68ff54e5d",
+        "name": "POST /auth/change-password",
+        "url": "/auth/change-password",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 260,
+        "wires": [
+            [
+                "8cb36a7731702e39"
+            ]
+        ]
+    },
+    {
+        "id": "8cb36a7731702e39",
+        "type": "json",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 370,
+        "y": 260,
+        "wires": [
+            [
+                "2d126f0877b761ab"
+            ]
+        ]
+    },
+    {
+        "id": "2d126f0877b761ab",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Validate change password",
+        "func": "const { user_id, old_password_hash, new_password_hash } = msg.payload || {};\nconst errors = [];\nconst userId = Number(user_id);\n\nif (!userId || Number.isNaN(userId)) {\n    errors.push(\"INVALID_USER_ID\");\n}\nif (!old_password_hash) {\n    errors.push(\"INVALID_OLD_PASSWORD_HASH\");\n}\nif (!new_password_hash) {\n    errors.push(\"INVALID_NEW_PASSWORD_HASH\");\n}\nif (old_password_hash && new_password_hash && old_password_hash === new_password_hash) {\n    errors.push(\"PASSWORD_UNCHANGED\");\n}\n\nif (errors.length) {\n    msg.statusCode = 400;\n    msg.payload = {\n        error: \"INVALID_REQUEST\",\n        message: \"Dữ liệu đổi mật khẩu không hợp lệ.\",\n        details: errors\n    };\n    return [null, msg];\n}\n\nmsg._changePassword = {\n    userId,\n    oldHash: old_password_hash,\n    newHash: new_password_hash\n};\n\nmsg.topic = \"SELECT password_hash FROM users WHERE id = ? LIMIT 1\";\nmsg.payload = [userId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 260,
+        "wires": [
+            [
+                "4647524bbf168f5e"
+            ],
+            [
+                "ebde208be7d74d33"
+            ]
+        ]
+    },
+    {
+        "id": "4647524bbf168f5e",
+        "type": "mysql",
+        "z": "fed3a4a68ff54e5d",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Fetch current hash",
+        "x": 840,
+        "y": 260,
+        "wires": [
+            [
+                "25349c83a96e4d5c"
+            ]
+        ]
+    },
+    {
+        "id": "25349c83a96e4d5c",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Compare old hash",
+        "func": "const change = msg._changePassword;\nif (!change) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: \"Thiếu dữ liệu đổi mật khẩu.\" };\n    return [null, msg];\n}\nconst rows = msg.payload || [];\nif (!rows.length) {\n    msg.statusCode = 404;\n    msg.payload = { error: \"USER_NOT_FOUND\" };\n    delete msg._changePassword;\n    return [null, msg];\n}\nconst stored = rows[0].password_hash;\nif (stored !== change.oldHash) {\n    msg.statusCode = 401;\n    msg.payload = { error: \"INVALID_OLD_PASSWORD\" };\n    delete msg._changePassword;\n    return [null, msg];\n}\n\nmsg.topic = \"UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?\";\nmsg.payload = [change.newHash, change.userId];\nreturn [msg, null];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1060,
+        "y": 260,
+        "wires": [
+            [
+                "cbca4d194f066cc9"
+            ],
+            [
+                "ebde208be7d74d33"
+            ]
+        ]
+    },
+    {
+        "id": "cbca4d194f066cc9",
+        "type": "mysql",
+        "z": "fed3a4a68ff54e5d",
+        "mydb": "639adbf3f9d14ad6",
+        "name": "Update hash",
+        "x": 1280,
+        "y": 260,
+        "wires": [
+            [
+                "45a4fbe727ced11d"
+            ]
+        ]
+    },
+    {
+        "id": "45a4fbe727ced11d",
+        "type": "function",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Return change result",
+        "func": "if (msg.error) {\n    msg.statusCode = 500;\n    msg.payload = { error: \"SERVER_ERROR\", message: msg.error.message || \"Không thể đổi mật khẩu.\" };\n    return [null, msg];\n}\nmsg.statusCode = 200;\nmsg.payload = { success: true };\ndelete msg._changePassword;\nreturn msg;",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1500,
+        "y": 260,
+        "wires": [
+            [
+                "ebde208be7d74d33"
+            ],
+            [
+                "ebde208be7d74d33"
+            ]
+        ]
+    },
+    {
+        "id": "ebde208be7d74d33",
+        "type": "http response",
+        "z": "fed3a4a68ff54e5d",
+        "name": "Change pwd response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1710,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "074a40d514991acb",
+        "type": "http response",
+        "z": "fed3a4a68ff54e5d",
+        "name": "HTTP 201/4xx",
+        "statusCode": "",
+        "headers": {},
+        "x": 2810,
+        "y": 120,
+        "wires": []
+    }
+]

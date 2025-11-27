@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: hoangviet
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: viet
+      MYSQL_PASSWORD: hoangviet
+    ports:
+      - "3306:3306"
+    networks:
+      - webnetwork
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mariadb
+    ports:
+      - "8080:80"
+    depends_on:
+      - mariadb
+    networks:
+      - webnetwork
+
+  nodered:
+    image: nodered/node-red:latest
+    container_name: nodered
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./nodered_data:/data
+    depends_on:
+      - mariadb
+    networks:
+      - webnetwork
+
+networks:
+  webnetwork:
+    driver: bridge

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning Programming</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-dark">
+    <div class="app-background"></div>
+    <div class="app-background app-background--blur"></div>
+
+    <header class="app-header">
+        <div class="app-header__brand">
+            <div class="logo">E</div>
+            <div class="brand-text">
+                <h1>E-Learning Programming</h1>
+                <p>Nền tảng học lập trình cho nhà phát triển tương lai</p>
+            </div>
+        </div>
+            <nav class="app-header__nav">
+            <div class="nav-left">
+                <button id="btn-view-courses" class="nav-btn nav-btn--primary">Khoá học</button>
+                <button id="btn-view-progress" class="nav-btn" disabled>Tiến độ</button>
+                <button id="btn-view-forum" class="nav-btn">Diễn đàn</button>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="nav-icon" type="button" title="Chuyển giao diện">🌙</button>
+                <button id="btn-login" class="nav-btn nav-btn--ghost" type="button">Đăng nhập</button>
+                <button id="btn-open-settings" class="nav-icon hidden" type="button" title="Cài đặt">⚙</button>
+                <button id="btn-logout" class="nav-btn nav-btn--ghost hidden" type="button">Đăng xuất</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="app-shell">
+        <div class="app-shell__column app-shell__column--left">
+            <div id="auth-panel" class="panel panel--auth">
+                <div class="auth-tabs">
+                    <button id="auth-tab-login" class="auth-tab auth-tab--active" type="button">Đăng nhập</button>
+                    <button id="auth-tab-register" class="auth-tab" type="button">Đăng ký</button>
+                </div>
+
+                <section id="login-section" class="auth-pane">
+                <div class="panel__header">
+                    <h2>Đăng nhập tài khoản</h2>
+                </div>
+
+                <div id="user-summary" class="user-summary hidden">
+                    <div class="user-summary__avatar" id="user-avatar">E</div>
+                    <div class="user-summary__info">
+                        <p class="user-summary__name" id="user-name">Tên người dùng</p>
+                        <p class="user-summary__roles" id="user-roles">Vai trò</p>
+                    </div>
+                </div>
+
+                <form id="login-form" class="form">
+                    <label for="username">Tên đăng nhập</label>
+                    <input type="text" id="username" name="username" placeholder="vd: viet" required>
+
+                    <label for="password">Mật khẩu</label>
+                    <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
+
+                    <button type="submit" class="btn btn--primary">Đăng nhập</button>
+                </form>
+
+                <p id="role-hint" class="hint hidden"></p>
+                <div id="login-message" class="message"></div>
+                </section>
+
+                <section id="register-section" class="auth-pane hidden">
+                    <div class="panel__header">
+                        <h2>Tạo tài khoản mới</h2>
+                    </div>
+
+                    <form id="register-form" class="form">
+                        <label for="register-fullname">Họ và tên</label>
+                        <input type="text" id="register-fullname" name="full_name" placeholder="vd: Nguyễn Văn A" required>
+
+                        <label for="register-username">Tên đăng nhập</label>
+                        <input type="text" id="register-username" name="username" placeholder="vd: nguyenvana" required>
+
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" name="email" placeholder="nguyenvana@example.com" required>
+
+                        <label for="register-password">Mật khẩu</label>
+                        <input type="password" id="register-password" name="password" placeholder="Ít nhất 6 ký tự" required>
+
+                        <button type="submit" class="btn btn--primary">Đăng ký học viên</button>
+                    </form>
+
+                    <p class="hint">Đơn đăng ký chỉ dành cho học viên và sẽ được bạn xem xét thủ công.</p>
+                    <div id="register-message" class="message"></div>
+                </section>
+            </div>
+
+            <div id="settings-panel" class="panel panel--auth hidden">
+                <div class="settings-header">
+                    <div class="settings-user">
+                        <div id="settings-avatar" class="settings-avatar">E</div>
+                        <div>
+                            <p id="settings-name" class="settings-name">Tên người dùng</p>
+                            <p id="settings-roles" class="settings-roles">Vai trò</p>
+                        </div>
+                    </div>
+                    <button id="close-settings" class="btn btn--ghost btn--icon" type="button">×</button>
+                </div>
+
+                <div class="settings-actions">
+                    <button
+                        id="open-change-password"
+                        class="settings-action btn btn--ghost"
+                        type="button"
+                        data-settings-target="profile-section"
+                    >
+                        Đổi mật khẩu
+                    </button>
+                </div>
+
+                <section id="profile-section" class="settings-pane hidden">
+                    <h3>Đổi mật khẩu</h3>
+                    <p class="hint">Nhập mật khẩu hiện tại và mật khẩu mới (đã mã hóa Base64).</p>
+
+                    <form id="change-password-form" class="form">
+                        <label for="change-old-password">Mật khẩu hiện tại</label>
+                        <input type="password" id="change-old-password" name="old_password" placeholder="Mật khẩu cũ" required>
+
+                        <label for="change-new-password">Mật khẩu mới</label>
+                        <input type="password" id="change-new-password" name="new_password" placeholder="Mật khẩu mới" required>
+
+                        <label for="change-confirm-password">Xác nhận mật khẩu mới</label>
+                        <input type="password" id="change-confirm-password" name="confirm_password" placeholder="Nhập lại mật khẩu mới" required>
+
+                        <button type="submit" class="btn btn--primary">Đổi mật khẩu</button>
+                    </form>
+
+                    <div id="change-password-message" class="message"></div>
+                </section>
+            </div>
+        </div>
+
+        <div class="app-shell__column app-shell__column--right">
+            <section id="courses-section" class="panel panel--content hidden">
+                <div class="panel__header courses-header">
+                    <div>
+                        <h2>Khóa học nổi bật</h2>
+                        <p class="panel__subtitle">Khám phá các khóa học theo ngôn ngữ lập trình bạn yêu thích.</p>
+                    </div>
+                    <div class="courses-search">
+                        <input
+                            type="text"
+                            id="course-search"
+                            class="courses-search__input"
+                            placeholder="Tìm theo tên khóa học, ngôn ngữ, giảng viên..."
+                        />
+                        <button id="course-search-clear" class="courses-search__clear" type="button" title="Xóa tìm kiếm">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+                <div class="courses-filters">
+                    <div class="courses-filters__header">
+                        <span class="courses-filters__label">Lọc theo ngôn ngữ:</span>
+                        <button id="language-filter-clear" class="courses-filters__clear hidden" type="button" title="Xóa bộ lọc">
+                            Xóa bộ lọc
+                        </button>
+                    </div>
+                    <div id="language-filters" class="language-filters"></div>
+                </div>
+                <div id="courses-list" class="card-grid"></div>
+            </section>
+
+            <section id="course-detail-section" class="course-detail-modal hidden">
+                <div class="course-detail-modal__backdrop"></div>
+                <div class="panel panel--content course-detail-modal__dialog">
+                    <header class="panel__header">
+                        <h2>Chi tiết khóa học</h2>
+                        <button id="close-course-detail" class="btn btn--ghost btn--icon" type="button">×</button>
+                    </header>
+                    <div id="course-detail"></div>
+                </div>
+            </section>
+
+            <section id="progress-section" class="panel panel--content hidden">
+                <div class="panel__header">
+                    <div>
+                        <h2>Tiến độ học tập</h2>
+                        <p class="panel__subtitle">Theo dõi trạng thái hoàn thành bài học và lịch sử học tập của bạn.</p>
+                    </div>
+                </div>
+                <div id="progress-list" class="progress-grid"></div>
+            </section>
+
+            <section id="forum-section" class="panel panel--content hidden">
+                <div class="panel__header">
+                    <div>
+                        <h2>Diễn đàn</h2>
+                        <p class="panel__subtitle">Nơi thảo luận và chia sẻ kiến thức lập trình.</p>
+                    </div>
+                    <button id="btn-create-post" class="btn btn--primary hidden">Đăng bài mới</button>
+                </div>
+
+                <div id="create-post-form" class="forum-create-post hidden">
+                    <h3>Đăng bài mới</h3>
+                    <form id="post-form" class="form">
+                        <label for="post-title">Tiêu đề</label>
+                        <input type="text" id="post-title" name="title" placeholder="Nhập tiêu đề bài viết" required>
+                        
+                        <label for="post-content">Nội dung</label>
+                        <textarea id="post-content" name="content" placeholder="Viết nội dung bài viết của bạn..." required></textarea>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn--primary">Đăng bài</button>
+                            <button type="button" id="btn-cancel-post" class="btn btn--ghost">Hủy</button>
+                        </div>
+                    </form>
+                    <div id="post-message" class="message"></div>
+                </div>
+
+                <div id="forum-posts-list" class="forum-posts-list"></div>
+            </section>
+
+            <section id="forum-post-detail-section" class="panel panel--content hidden">
+                <header class="panel__header">
+                    <button id="close-post-detail" class="btn btn--ghost">← Quay lại diễn đàn</button>
+                </header>
+                <div id="forum-post-detail"></div>
+            </section>
+        </div>
+    </main>
+
+    <div id="toast" class="toast hidden">
+        <div id="toast-icon" class="toast__icon">✓</div>
+        <div class="toast__body">
+            <p id="toast-title" class="toast__title">Thông báo</p>
+            <p id="toast-message" class="toast__message">Nội dung</p>
+        </div>
+        <button id="toast-close" class="toast__close" type="button">×</button>
+    </div>
+
+    <footer class="app-footer">
+        <small>© 2025 E-Learning Programming. Crafted for đam mê lập trình.</small>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
